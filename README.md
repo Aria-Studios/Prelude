@@ -1,92 +1,63 @@
-# Prelude
 
 
+# Prelude Updater
+Prelude Updater is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. This was written in Python and developed/tested on Windows, but it should theoretically work on any OS (given the appropriate development environment to compile the executable file). Once you've edited the variables and compiled the code, you can include the executable file in your game download. This program can be launched in order to check for any updates that are available. It can also be used to download those updates.
 
-## Getting started
+# Getting Started
+1. Read the *entire* [File Setup and Structure section](#File_Setup_and_Structure) below before proceeding!
+1. When you're ready, install [Python](https://www.python.org/downloads/) (if it asks, be sure to install the tkinter module as well).
+1. Install any other dependencies (the only one should be the [requests module](https://docs.python-requests.org/en/latest/user/install/#install)).
+1. Grab a copy of the source code for this project.
+1. Open the `updater.py` file and edit the values at the beginning of the file; save and close the file.
+1. Install [pyinstaller](https://pyinstaller.readthedocs.io/en/stable/installation.html) and [auto-py-to-exe](https://pypi.org/project/auto-py-to-exe/).
+1. Use one of the above to compile the source code into an executable file. auto-py-to-exe provides an easy to use GUI, while pyinstaller is a CLI program. I recommend auto-py-to-exe for simplicity's sake.
+1. Setup the remote file structure, including the `version` information file.
+1. Include the executable file and `version` information file in your base game download.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+# File Setup and Structure
+This section goes over how the program operates and should help you make the most of it, while reducing any errors experienced.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## "core" vs "patch"
+One of the first things to understand is that this program operates under the assumption that you use two different kind of updates: core and patch. Core releases are major releases which add or edit a large number of files, wherein it is easier/better to assume that you need to ship the whole game package again rather than attempting to create a patch download. Patch releases are minor releases that add or edit a smaller number of files; additionally, this type of release is cumulative to the last core release you published.
 
-## Add your files
+## `version`
+`version` is a simple file that contains a float value with your release information. As it is a float value (with up to two decimal points of precision), you should use a scheme such as `1.21` for version information. For our purposes, the program views the whole number (`1.##`) as the core release, and the decimal places (`#.01`) as patch releases. One important point to keep in mind with this program is that it cannot recognize the difference between values like `1.1` and `1.10`. This file is used in several different places, both remotely and locally and will be covered more later.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## `updater.py`
+`updater.py` contains a few variables which are used in order to pull information from the local game installation and your remote server.
 
+```Python
+gameTitle = 'Game Title'
+gameURL = 'https://reliccastle.com'
+urlPath = 'http://domain.com/directory'
+versionFile = 'version'
+patchArchive = 'patch.zip'
+coreArchive = 'core.zip'
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/ariastudios/prelude.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
+* `gameTitle` is fairly self explanatory, it will insert your game's title into all the appropriate spots in the program interface.
+* `gameURL` can be used for any URL you choose, such as a project thread on Relic Castle or a custom website. It will launch if the appropriate options is selected in the menu bar.
+* `urlPath` is the *remote* URL path to the directory where your files will be stored. For example, if your website is `https://domain.com` and you will host the files in the `downloads` directory, you would put `https://domain.com/downloads` for this variable.
+* `versionFile` is the name of the *local* ***and*** *remote* files that contain your version information. I recommend leaving it as the default `version` which can be edited fairly easily but will discourage users from tampering with it.
+* `patchArchive` is the name of the *remote* ***zip*** archive that contains your latest patch/minor release.
+* `coreArchive` is the name of the *remote* ***zip*** archive that contains your latest core/major release.
 
-- [ ] [Set up project integrations](https://gitlab.com/ariastudios/prelude/-/settings/integrations)
+## `patch.zip`
+The `patch.zip` archive should contain a copy of all files that have been updated since the latest ***core*** release -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should also contain an updated `version` information file that matches to this patch release, which will overwrite the user's local copy when they update. See the screenshot below for what an example setup should look like.
 
-## Collaborate with your team
+![Example of patch.zip layout.](https://media.ariastudio.dev/misc/prelude-patch.png)
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## `core.zip`
+The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should also contain a `version` information file that matches to this core release. See the screenshot below for what an example setup should look like.
 
-## Test and Deploy
+![Example of core.zip layout.](https://media.ariastudio.dev/misc/prelude-core.png)
 
-Use the built-in continuous integration in GitLab.
+## Local (Game Folder)
+Locally, this program works off the assumption that it will be run in the same location as your game executable. This means that you'll need to include two (2) files with your base game: the `updater` executable and `version` information file. See the screenshot below for what an example setup should look like.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+![Example of local folder layout.](https://media.ariastudio.dev/misc/prelude-local.png)
 
-***
+## Remote (Downloads Folder)
+On the remote server, the setup is fairly simple: pick a location and put the `version` information file, `patch.zip` archive, and `core.zip` archive there. As long as it can be reached by an HTTP request, then the program can function correctly. See the screenshot below for what an example setup should look like.
 
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+![Example of remote folder layout.](https://media.ariastudio.dev/misc/prelude-remote.png)
