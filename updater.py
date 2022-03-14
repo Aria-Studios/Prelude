@@ -83,13 +83,13 @@ def updateGame():
         progressLabel['text'] = 'Downloading latest core (' + str(remoteVersion) + ') archive.'
 
         if (downloadErrorCheck(coreArchive) == False):
-            coreZip = requests.get(urlPath + '/' + coreArchive)
+            coreZip = requests.get(urlPath + '/' + coreArchive, timeout=30)
             coreFile = open(coreArchive, 'wb')
             coreFile.write(coreZip.content)
             coreFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Unzipping core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting core (' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(coreArchive) == False):
             coreFile = ZipFile(coreArchive, 'r')
@@ -97,7 +97,7 @@ def updateGame():
             coreFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Removing core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting core (' + str(remoteVersion) + ') archive.'
 
         os.remove(coreArchive)
 
@@ -105,13 +105,13 @@ def updateGame():
         progressLabel['text'] = 'Downloading latest patch (' + str(remoteVersion) + ') archive.'
 
         if (downloadErrorCheck(patchArchive) == False):
-            patchZip = requests.get(urlPath + '/' + patchArchive)
+            patchZip = requests.get(urlPath + '/' + patchArchive, timeout=30)
             patchFile = open(patchArchive, 'wb')
             patchFile.write(patchZip.content)
             patchFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Unzipping patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting patch (' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(patchArchive) == False):
             patchFile = ZipFile(patchArchive, 'r')
@@ -119,7 +119,7 @@ def updateGame():
             patchFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Removing patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting patch (' + str(remoteVersion) + ') archive.'
 
         os.remove(patchArchive)
 
@@ -133,13 +133,13 @@ def updateGame():
         progressLabel['text'] = 'Downloading latest core (' + str(remoteVersion) + ') archive.'
 
         if (downloadErrorCheck(coreArchive) == False):
-            coreZip = requests.get(urlPath + '/' + coreArchive)
+            coreZip = requests.get(urlPath + '/' + coreArchive, timeout=30)
             coreFile = open(coreArchive, 'wb')
             coreFile.write(coreZip.content)
             coreFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Unzipping core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting core (' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(coreArchive) == False):
             coreFile = ZipFile(coreArchive, 'r')
@@ -147,7 +147,7 @@ def updateGame():
             coreFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Removing core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting core (' + str(remoteVersion) + ') archive.'
 
         os.remove(coreArchive)
 
@@ -160,13 +160,13 @@ def updateGame():
         progressLabel['text'] = 'Downloading latest patch (' + str(remoteVersion) + ') archive.'
 
         if (downloadErrorCheck(patchArchive) == False):
-            patchZip = requests.get(urlPath + '/' + patchArchive)
+            patchZip = requests.get(urlPath + '/' + patchArchive, timeout=30)
             patchFile = open(patchArchive, 'wb')
             patchFile.write(patchZip.content)
             patchFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Unzipping patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting patch (' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(patchArchive) == False):
             patchFile = ZipFile(patchArchive, 'r')
@@ -174,7 +174,7 @@ def updateGame():
             patchFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Removing patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting patch (' + str(remoteVersion) + ') archive.'
 
         os.remove(patchArchive)
 
@@ -208,7 +208,7 @@ def localErrorCheck(fileToCheck):
         try:
             ZipFile(fileToCheck)
         except FileNotFoundError:
-            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' archive cannot be found.', parent=window)
+            messagebox.showerror('Prelude Error', 'Local archive cannot be found.', parent=window)
             sys.exit()
         else:
             return False
@@ -232,16 +232,23 @@ def remoteErrorCheck(fileToCheck):
 # Error handling for downloading zip archives
 def downloadErrorCheck(fileToCheck):
     try:
-        requests.get(urlPath + '/' + fileToCheck)
-    except requests.exceptions.Timeout:
-        # Maybe set up for a retry, or continue in a retry loop
-        messagebox.showerror('Prelude Error', 'Error', parent=window)
+        dl = requests.get(urlPath + '/' + fileToCheck, timeout=30)
+        dl.raise_for_status()
+    except requests.exceptions.HTTPError as error:
+        messagebox.showerror('Prelude Error', 'HTTP error: ' + str(error) + '.\nContact ' + gameTitle + ' developers.', parent=window)
+        sys.exit()
+    except requests.exceptions.ConnectionError:
+        messagebox.showerror('Prelude Error', 'Connection error. \nContact ' + gameTitle + ' developers.', parent=window)
+        sys.exit()
     except requests.exceptions.TooManyRedirects:
-        # Tell the user their URL was bad and try a different one
-        messagebox.showerror('Prelude Error', 'Error', parent=window)
-    except requests.exceptions.RequestException as e:
-        # catastrophic error. bail.
-        messagebox.showerror('Prelude Error', 'Error', parent=window)
+        messagebox.showerror('Prelude Error', 'Server connection exceeded maximum number of redirects.\nContact ' + gameTitle + ' developers.', parent=window)
+        sys.exit()
+    except requests.exceptions.Timeout:
+        messagebox.showerror('Prelude Error', 'Server connection timed out, try again later.', parent=window)
+        sys.exit()
+    except requests.exceptions.RequestException as error:
+        messagebox.showerror('Prelude Error', 'Error: ' + str(error) + '.\nContact ' + gameTitle + ' developers.', parent=window)
+        sys.exit()
     else:
         return False
 
