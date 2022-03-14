@@ -43,13 +43,11 @@ from zipfile import ZipFile
 # converts it to a float, returns result to function call
 def getLocalVersion():
     try:
-        open(versionFile, 'r')
+        file = open(versionFile, 'r')
     except IOError:
-        actions.entryconfigure('Update Game', state=DISABLED)
         messagebox.showerror('Prelude Error', 'Local version information file cannot be found.', parent=window)
         sys.exit()
     else:
-        file = open(versionFile, 'r')
         localVersion = float(file.read())
         file.close()
 
@@ -58,20 +56,42 @@ def getLocalVersion():
 # retrieves the remote version file to get the version number,
 # converts it to a float, returns result to function call
 def getRemoteVersion():
-    remoteVersion = float(urllib.request.urlopen(urlPath + '/' + versionFile).read())
-
-    return remoteVersion
+    try:
+        remoteVersion = float(urllib.request.urlopen(urlPath + '/' + versionFile).read())
+    except urllib.error.URLError as e:
+        if hasattr(e, 'reason'):
+            error = str(e.reason)
+            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s version information file. \n' + error, parent=window)
+            sys.exit()
+        elif hasattr(e, 'code'):
+            error = str(e.code)
+            messagebox.showerror('Prelude Error', 'Server could not fulfill the request. \n' + error, parent=window)
+            sys.exit()
+    else:
+        return remoteVersion
 
 # retrieves the remote message file, displays a message box if
 # there are any contents, disables the menu action otherwise
 def displayMessages():
-    messageContents = urllib.request.urlopen(urlPath + '/' + messageFile).read()
-    messageContents = messageContents.decode('UTF-8')
-
-    if (messageContents != ''):
-        messagebox.showinfo('A Message from ' + gameTitle + ' Developers', messageContents, parent=window)
+    try:
+        messageContents = urllib.request.urlopen(urlPath + '/' + messageFile).read()
+    except urllib.error.URLError as e:
+        if hasattr(e, 'reason'):
+            error = str(e.reason)
+            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s message information file. \n' + error, parent=window)
+            sys.exit()
+        elif hasattr(e, 'code'):
+            error = str(e.code)
+            messagebox.showerror('Prelude Error', 'Server could not fulfill the request. \n' + error, parent=window)
+            sys.exit()
     else:
-        actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+        messageContents = messageContents.decode('UTF-8')
+
+        if (messageContents != ''):
+            messagebox.showinfo('A Message from ' + gameTitle + ' Developers', messageContents, parent=window)
+            actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
+        else:
+            actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
 
 # checks to see how versions compare. goes through cases in order until finds a match,
 # some code is executed the same way at each function call
@@ -197,8 +217,8 @@ window.rowconfigure(0, weight=1)
 menubar = Menu(window)
 actions = Menu(menubar)
 menubar.add_cascade(label='Actions', menu=actions)
-actions.add_command(label='Update Game', command=lambda: threading.Thread(target=updateGame).start())
-actions.add_command(label='Display Game Developer Messages', command=displayMessages)
+actions.add_command(label='Update Game', command=lambda: threading.Thread(target=updateGame).start(), state='disabled')
+actions.add_command(label='Display Game Developer Messages', command=displayMessages, state='disabled')
 actions.add_separator()
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(urlPath + '/' + coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(urlPath + '/' + patchArchive))
@@ -210,63 +230,46 @@ about.add_command(label='About ' + gameTitle, command=lambda: webbrowser.open(ga
 about.add_command(label='About Prelude', command=lambda: webbrowser.open('https://gitlab.com/ariastudios/prelude'))
 window.config(menu=menubar)
 
-# checks to see if the remoote server is available, if any errors arise,
-# display an error message; otherwise, proceed with main program
-serverCheck = urllib.request.Request(urlPath + '/' + versionFile) # urlPath + '/' + versionFile 'http://pretend_server.org'
-try:
-    response = urllib.request.urlopen(serverCheck)
-except urllib.error.URLError as e:
-    if hasattr(e, 'reason'):
-        error = str(e.reason)
-        actions.entryconfigure('Update Game', state=DISABLED)
-        actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
-        actions.entryconfigure('Close', state=DISABLED)
-        messagebox.showerror('Prelude Error', 'Failed to reach the remote server. \n' + error, parent=window)
-        sys.exit()
-    elif hasattr(e, 'code'):
-        error = str(e.code)
-        actions.entryconfigure('Update Game', state=DISABLED)
-        actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
-        actions.entryconfigure('Close', state=DISABLED)
-        messagebox.showerror('Prelude Error', 'Server could not fulfill the request. \n' + error, parent=window)
-        sys.exit()
-else:
-    # calls relevant functions for initial information
-    localVersion = getLocalVersion()
-    remoteVersion = getRemoteVersion()
+# displays the version information
+mainFrame = ttk.Frame(window).grid(column=0, row=0)
+versionFrame = ttk.Frame(mainFrame, width=250, height=50).grid(column=0, row=0, columnspan=2, rowspan=2, sticky=N)
+ttk.Label(versionFrame, text='My Version:').grid(column=0, row=0, columnspan=1, rowspan=1, sticky=N, pady=10)
+localVersionLabel = ttk.Label(versionFrame, text=format(0, '.2f'))
+localVersionLabel.grid(column=1, row=0, columnspan=1, rowspan=1, sticky=N, padx=50, pady=10)
+ttk.Label(versionFrame, text='Current Version:').grid(column=0, row=1, columnspan=1, rowspan=1, sticky=N, pady=10)
+remoteVersionLabel = ttk.Label(versionFrame, text=format(0, '.2f'))
+remoteVersionLabel.grid(column=1, row=1, columnspan=1, rowspan=1, sticky=N, padx=50, pady=10)
+ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=2, columnspan=2, rowspan=1, sticky=N)
 
-    # displays the version information
-    mainFrame = ttk.Frame(window).grid(column=0, row=0)
-    versionFrame = ttk.Frame(mainFrame, width=250, height=50).grid(column=0, row=0, columnspan=2, rowspan=2, sticky=N)
-    ttk.Label(versionFrame, text='My Version:').grid(column=0, row=0, columnspan=1, rowspan=1, sticky=N, pady=10)
-    localVersionLabel = ttk.Label(versionFrame, text=format(localVersion, '.2f'))
-    localVersionLabel.grid(column=1, row=0, columnspan=1, rowspan=1, sticky=N, padx=50, pady=10)
-    ttk.Label(versionFrame, text='Current Version:').grid(column=0, row=1, columnspan=1, rowspan=1, sticky=N, pady=10)
-    ttk.Label(versionFrame, text=format(remoteVersion, '.2f')).grid(column=1, row=1, columnspan=1, rowspan=1, sticky=N, padx=50, pady=10)
-    ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=2, columnspan=2, rowspan=1, sticky=N)
+# displays the progressbar, progress label, and action buttons
+updateFrame = ttk.Frame(mainFrame, width=250, height=50).grid(column=0, row=3, columnspan=2, rowspan=2, sticky=N)
+progressBar = ttk.Progressbar(updateFrame, orient='horizontal', length=200, mode='determinate')
+progressBar.grid(column=0, row=3, columnspan=2, rowspan=1, sticky=N, pady=10)
+progressLabel = ttk.Label(updateFrame, text='Select an option below.')
+progressLabel.grid(column=0, row=4, columnspan=2, rowspan=1, sticky=N, pady=3)
+updateButton = ttk.Button(updateFrame, text='Update Game', command=lambda: threading.Thread(target=updateGame).start(), state='disabled')
+updateButton.grid(column=0, row=5, columnspan=2, rowspan=1, sticky=N, pady=10)
+closeButton = ttk.Button(updateFrame, text='Close', command=sys.exit).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
 
-    # displays the progressbar, progress label, and action buttons
-    updateFrame = ttk.Frame(mainFrame, width=250, height=50).grid(column=0, row=3, columnspan=2, rowspan=2, sticky=N)
-    progressBar = ttk.Progressbar(updateFrame, orient='horizontal', length=200, mode='determinate')
-    progressBar.grid(column=0, row=3, columnspan=2, rowspan=1, sticky=N, pady=10)
-    progressLabel = ttk.Label(updateFrame, text='Select an option below.')
-    progressLabel.grid(column=0, row=4, columnspan=2, rowspan=1, sticky=N, pady=3)
+# displays Prelude credits
+ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
+creditFrame = ttk.Frame(mainFrame, width=250, height=25).grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S)
+ttk.Label(creditFrame, text='Powered by Prelude v1').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
 
-    if (localVersion < remoteVersion):
-        updateButton = ttk.Button(updateFrame, text='Update Game', command=lambda: threading.Thread(target=updateGame).start())
-        updateButton.grid(column=0, row=5, columnspan=2, rowspan=1, sticky=N, pady=10)
-    else:
-        updateButton = ttk.Button(updateFrame, text='Update Game', state='disabled').grid(column=0, row=5, columnspan=2, rowspan=1, sticky=N, pady=10)
+# call relevant functions to get version information,
+# set the appropriate labels to the returned information
+localVersion = getLocalVersion()
+remoteVersion = getRemoteVersion()
+localVersionLabel['text'] = format(localVersion, '.2f')
+remoteVersionLabel['text'] = format(remoteVersion, '.2f')
 
-    closeButton = ttk.Button(updateFrame, text='Close', command=sys.exit).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
+# display any remote messages
+displayMessages()
 
-    # displays Prelude credits
-    ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
-    creditFrame = ttk.Frame(mainFrame, width=250, height=25).grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S)
-    ttk.Label(creditFrame, text='Powered by Prelude v1').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
-
-    # automatically displays any remote Messages
-    displayMessages()
+# if the local version is out of date, enable the update options
+if (localVersion < remoteVersion):
+    actions.entryconfigure('Update Game', state=NORMAL)
+    updateButton['state'] = NORMAL
 
 # creates & displays the GUI
 window.mainloop()
