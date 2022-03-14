@@ -35,18 +35,25 @@ patchArchive = 'patch.zip'
 # requests to download the archives, zipfile to unzip the archives
 # os to delete archives when done
 from tkinter import *
-from tkinter import ttk, messagebox
-import webbrowser, threading, urllib.request, urllib.error, requests, os
+from tkinter import messagebox, ttk
+import os, requests, sys, threading, urllib.error, urllib.request, webbrowser
 from zipfile import ZipFile
 
 # reads the local version file to get the version number,
 # converts it to a float, returns result to function call
 def getLocalVersion():
-    file = open(versionFile, 'r')
-    localVersion = float(file.read())
-    file.close()
+    try:
+        open(versionFile, 'r')
+    except IOError:
+        actions.entryconfigure('Update Game', state=DISABLED)
+        messagebox.showerror('Prelude Error', 'Local version information file cannot be found.', parent=window)
+        sys.exit()
+    else:
+        file = open(versionFile, 'r')
+        localVersion = float(file.read())
+        file.close()
 
-    return localVersion
+        return localVersion
 
 # retrieves the remote version file to get the version number,
 # converts it to a float, returns result to function call
@@ -196,7 +203,7 @@ actions.add_separator()
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(urlPath + '/' + coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(urlPath + '/' + patchArchive))
 actions.add_separator()
-actions.add_command(label='Close', command=window.destroy)
+actions.add_command(label='Close', command=sys.exit)
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
 about.add_command(label='About ' + gameTitle, command=lambda: webbrowser.open(gameURL))
@@ -213,14 +220,16 @@ except urllib.error.URLError as e:
         error = str(e.reason)
         actions.entryconfigure('Update Game', state=DISABLED)
         actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+        actions.entryconfigure('Close', state=DISABLED)
         messagebox.showerror('Prelude Error', 'Failed to reach the remote server. \n' + error, parent=window)
-        window.withdraw()
+        sys.exit()
     elif hasattr(e, 'code'):
         error = str(e.code)
         actions.entryconfigure('Update Game', state=DISABLED)
         actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+        actions.entryconfigure('Close', state=DISABLED)
         messagebox.showerror('Prelude Error', 'Server could not fulfill the request. \n' + error, parent=window)
-        window.withdraw()
+        sys.exit()
 else:
     # calls relevant functions for initial information
     localVersion = getLocalVersion()
@@ -249,7 +258,7 @@ else:
     else:
         updateButton = ttk.Button(updateFrame, text='Update Game', state='disabled').grid(column=0, row=5, columnspan=2, rowspan=1, sticky=N, pady=10)
 
-    closeButton = ttk.Button(updateFrame, text='Close', command=window.destroy).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
+    closeButton = ttk.Button(updateFrame, text='Close', command=sys.exit).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
 
     # displays Prelude credits
     ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
