@@ -1,7 +1,5 @@
-# TODO: change static version update in updateGame to function call via getMyVersion
-
 # # # # # # # # # # # # # #
-#     Prelude Updater     #
+#         Prelude         #
 # # # # # # # # # # # # # #
 # START FILE EDITING HERE #
 # # # # # # # # # # # # # #
@@ -13,7 +11,7 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'http://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -153,7 +151,9 @@ def updateGame():
         progressBar['value'] = 100
         progressLabel['text'] = 'Error.'
 
-    myVersionLabel['text'] = format(currentVersion, '.2f')
+    newVersion = getMyVersion()
+
+    myVersionLabel['text'] = format(newVersion, '.2f')
     actions.entryconfigure('Update Game', state=DISABLED)
     updateButton['state'] = 'disabled'
 
@@ -181,7 +181,7 @@ actions.add_command(label='Close', command=window.destroy)
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
 about.add_command(label='About ' + gameTitle, command=lambda: webbrowser.open(gameURL))
-about.add_command(label='About Prelude Updater', command=lambda: webbrowser.open('https://gitlab.com/ariastudios/prelude'))
+about.add_command(label='About Prelude', command=lambda: webbrowser.open('https://gitlab.com/ariastudios/prelude'))
 
 # displays the version information
 mainFrame = ttk.Frame(window).grid(column=0, row=0)
@@ -211,7 +211,7 @@ closeButton = ttk.Button(updateFrame, text='Close', command=window.destroy).grid
 # displays Prelude credits
 ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
 creditFrame = ttk.Frame(mainFrame, width=250, height=25).grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S)
-ttk.Label(creditFrame, text='Powered by Prelude Updater').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
+ttk.Label(creditFrame, text='Powered by Prelude').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
 
 # creates & displays the full GUI
 window.config(menu=menubar)
