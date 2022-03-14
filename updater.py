@@ -11,34 +11,34 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://domain.com/downloads'
+urlPath = 'https://media.ariastudio.dev/prelude'
+
+# The message file name, NO STARTING OR TRAILING SLASHES
+messageFile = 'message'
 
 # The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
 
+# The core file name, MUST BE ZIP format
+coreArchive = 'core.zip'
+
 # The patch file name, MUST BE ZIP FORMAT
 patchArchive = 'patch.zip'
 
-# The core file name, MUST BE ZIP format
-coreArchive = 'core.zip'
 
 # # # # # # # # # # # # # #
 #  END FILE EDITING HERE  #
 # # # # # # # # # # # # # #
 
-# import relevant libraries
+# import relevant modules
 # tkinter for GUI, webbrowser to launch menu links
-# threading for progressbar, urllib for checking the current version
-# requests to download the patch, zipfile to unzip the patch
-# os to delete patch zip when done
+# threading for progressbar, urllib for reading remote files
+# requests to download the archives, zipfile to unzip the archives
+# os to delete archives when done
 from tkinter import *
-from tkinter import ttk
-import webbrowser
-import threading
-import urllib.request
-import requests
+from tkinter import ttk, messagebox
+import webbrowser, threading, urllib.request, requests, os
 from zipfile import ZipFile
-import os
 
 # reads the local version file to get the version number, converts it to a float, returns result to function call
 def getMyVersion():
@@ -55,6 +55,17 @@ def getCurrentVersion():
     currentVersion = float(urllib.request.urlopen(urlPath + '/' + versionFile).read())
 
     return currentVersion
+
+# retrieves the remote message file, displays a message box if there are any contents, disables the menu action otherwise
+def displayMessages():
+
+    messageContents = urllib.request.urlopen(urlPath + '/' + messageFile).read()
+    messageContents = messageContents.decode('UTF-8')
+
+    if (messageContents != ''):
+        messagebox.showinfo('A Message from ' + gameTitle + ' Developers', messageContents, parent=window)
+    else:
+        actions.entryconfigure('Display Developer Messages', state=DISABLED)
 
 # checks to see how versions compare. first case should download both the latest core and then the patch.
 # second case should just download the latest core. third case should just download the latest patch.
@@ -173,6 +184,7 @@ menubar = Menu(window)
 actions = Menu(menubar)
 menubar.add_cascade(label='Actions', menu=actions)
 actions.add_command(label='Update Game', command=lambda: threading.Thread(target=updateGame).start())
+actions.add_command(label='Display Developer Messages', command=displayMessages)
 actions.add_separator()
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(urlPath + '/' + coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(urlPath + '/' + patchArchive))
@@ -211,8 +223,9 @@ closeButton = ttk.Button(updateFrame, text='Close', command=window.destroy).grid
 # displays Prelude credits
 ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
 creditFrame = ttk.Frame(mainFrame, width=250, height=25).grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S)
-ttk.Label(creditFrame, text='Powered by Prelude').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
+ttk.Label(creditFrame, text='Powered by Prelude v1').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
 
 # creates & displays the full GUI
 window.config(menu=menubar)
+displayMessages()
 window.mainloop()
