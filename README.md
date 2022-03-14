@@ -4,7 +4,7 @@
 Prelude is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. This was written in Python and developed/tested on Windows, but it should theoretically work on any OS (given the appropriate development environment to compile the executable file). Once you've edited the variables and compiled the code, you can include the executable file in your game download. This program can be launched in order to check for any updates that are available. It can also be used to download those updates.
 
 # Getting Started
-1. Read the *entire* [File Setup and Structure section](#File_Setup_and_Structure) below before proceeding!
+1. Read the *entire* [File Setup and Structure section](#file-setup-and-structure) below before proceeding!
 1. When you're ready, install [Python](https://www.python.org/downloads/) (if it asks, be sure to install the tkinter module as well).
 1. Install any other dependencies (the only one should be the [requests module](https://docs.python-requests.org/en/latest/user/install/#install)).
 1. Grab a copy of the source code for this project.
