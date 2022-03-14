@@ -11,7 +11,7 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # The message file name, NO STARTING OR TRAILING SLASHES
 messageFile = 'message'
@@ -39,52 +39,31 @@ from tkinter import messagebox, ttk
 import os, requests, sys, threading, urllib.error, urllib.request, webbrowser
 from zipfile import ZipFile
 
-# reads the local version file to get the version number,
-# converts it to a float, returns result to function call
+# passes the versionFile to local error handling, if no errors are
+# found then it retireves the version number, converts it
+# to a float, and returns the result to the function call
 def getLocalVersion():
-    try:
+    if (localErrorCheck(versionFile) == False):
         file = open(versionFile, 'r')
-    except IOError:
-        messagebox.showerror('Prelude Error', 'Local version information file cannot be found.', parent=window)
-        sys.exit()
-    else:
         localVersion = float(file.read())
         file.close()
-
         return localVersion
 
-# retrieves the remote version file to get the version number,
-# converts it to a float, returns result to function call
+# passes the versionFile to remote error handling, if no errors are
+# found then it retireves the version number, converts it
+# to a float, and returns the result to the function call
 def getRemoteVersion():
-    try:
+    if (remoteErrorCheck(versionFile) == False):
         remoteVersion = float(urllib.request.urlopen(urlPath + '/' + versionFile).read())
-    except urllib.error.URLError as e:
-        if hasattr(e, 'reason'):
-            error = str(e.reason)
-            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s version information file. \n' + error, parent=window)
-            sys.exit()
-        elif hasattr(e, 'code'):
-            error = str(e.code)
-            messagebox.showerror('Prelude Error', 'Server could not fulfill the request. \n' + error, parent=window)
-            sys.exit()
-    else:
         return remoteVersion
 
-# retrieves the remote message file, displays a message box if
-# there are any contents, disables the menu action otherwise
+# passes the messageFile to remote error handling, if no errors are
+# found then it retireves the message contents, converts it
+# to a string, displays the contents in a message box and enables the menu action
+# (if there are any, otherwise it disables the menu action)
 def displayMessages():
-    try:
+    if (remoteErrorCheck(messageFile) == False):
         messageContents = urllib.request.urlopen(urlPath + '/' + messageFile).read()
-    except urllib.error.URLError as e:
-        if hasattr(e, 'reason'):
-            error = str(e.reason)
-            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s message information file. \n' + error, parent=window)
-            sys.exit()
-        elif hasattr(e, 'code'):
-            error = str(e.code)
-            messagebox.showerror('Prelude Error', 'Server could not fulfill the request. \n' + error, parent=window)
-            sys.exit()
-    else:
         messageContents = messageContents.decode('UTF-8')
 
         if (messageContents != ''):
@@ -94,48 +73,53 @@ def displayMessages():
             actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
 
 # checks to see how versions compare. goes through cases in order until finds a match,
-# some code is executed the same way at each function call
+# some code is executed the same way at each function call. all pieces are passed to
+# the relevant error handling function
 def updateGame():
     # first case: if local core release is less than remote core release AND
     # if the remote core release is not equal to the remote patch release,
-    # then download both the core and patch releases.
+    # then install both the core and patch releases.
     if (int(localVersion) < int(remoteVersion) and int(remoteVersion) != remoteVersion):
-        progressLabel['text'] = 'Downloading latest core.'
+        progressLabel['text'] = 'Downloading latest core (' + str(remoteVersion) + ') archive.'
 
-        file = open(coreArchive, 'wb')
-        zip = requests.get(urlPath + '/' + coreArchive)
-        file.write(zip.content)
-        file.close()
-
-        progressBar['value'] += 20
-        progressLabel['text'] = 'Unzipping core file.'
-
-        file = ZipFile(coreArchive, 'r')
-        file.extractall()
-        file.close()
+        if (downloadErrorCheck(coreArchive) == False):
+            coreZip = requests.get(urlPath + '/' + coreArchive)
+            coreFile = open(coreArchive, 'wb')
+            coreFile.write(coreZip.content)
+            coreFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Removing core file.'
+        progressLabel['text'] = 'Unzipping core (' + str(remoteVersion) + ') archive.'
+
+        if (localErrorCheck(coreArchive) == False):
+            coreFile = ZipFile(coreArchive, 'r')
+            coreFile.extractall()
+            coreFile.close()
+
+        progressBar['value'] += 20
+        progressLabel['text'] = 'Removing core (' + str(remoteVersion) + ') archive.'
 
         os.remove(coreArchive)
 
         progressBar['value'] += 10
-        progressLabel['text'] = 'Downloading latest patch.'
+        progressLabel['text'] = 'Downloading latest patch (' + str(remoteVersion) + ') archive.'
 
-        file = open(patchArchive, 'wb')
-        zip = requests.get(urlPath + '/' + patchArchive)
-        file.write(zip.content)
-        file.close()
-
-        progressBar['value'] += 20
-        progressLabel['text'] = 'Unzipping patch file.'
-
-        file = ZipFile(patchArchive, 'r')
-        file.extractall()
-        file.close()
+        if (downloadErrorCheck(patchArchive) == False):
+            patchZip = requests.get(urlPath + '/' + patchArchive)
+            patchFile = open(patchArchive, 'wb')
+            patchFile.write(patchZip.content)
+            patchFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Removing patch file.'
+        progressLabel['text'] = 'Unzipping patch (' + str(remoteVersion) + ') archive.'
+
+        if (localErrorCheck(patchArchive) == False):
+            patchFile = ZipFile(patchArchive, 'r')
+            patchFile.extractall()
+            patchFile.close()
+
+        progressBar['value'] += 20
+        progressLabel['text'] = 'Removing patch (' + str(remoteVersion) + ') archive.'
 
         os.remove(patchArchive)
 
@@ -144,24 +128,26 @@ def updateGame():
 
     # second case: if local core release is less than remote core release AND
     # if the remote core release is equal to the remote patch release,
-    # then just download the core release.
+    # then just install the core release.
     elif (int(localVersion) < int(remoteVersion) and int(remoteVersion) == remoteVersion):
-        progressLabel['text'] = 'Downloading latest core.'
+        progressLabel['text'] = 'Downloading latest core (' + str(remoteVersion) + ') archive.'
 
-        file = open(coreArchive, 'wb')
-        zip = requests.get(urlPath + '/' + coreArchive)
-        file.write(zip.content)
-        file.close()
-
-        progressBar['value'] += 40
-        progressLabel['text'] = 'Unzipping core file.'
-
-        file = ZipFile(coreArchive, 'r')
-        file.extractall()
-        file.close()
+        if (downloadErrorCheck(coreArchive) == False):
+            coreZip = requests.get(urlPath + '/' + coreArchive)
+            coreFile = open(coreArchive, 'wb')
+            coreFile.write(coreZip.content)
+            coreFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Removing core file.'
+        progressLabel['text'] = 'Unzipping core (' + str(remoteVersion) + ') archive.'
+
+        if (localErrorCheck(coreArchive) == False):
+            coreFile = ZipFile(coreArchive, 'r')
+            coreFile.extractall()
+            coreFile.close()
+
+        progressBar['value'] += 40
+        progressLabel['text'] = 'Removing core (' + str(remoteVersion) + ') archive.'
 
         os.remove(coreArchive)
 
@@ -169,24 +155,26 @@ def updateGame():
         progressLabel['text'] = gameTitle + ' is now up to date!'
 
     # third case: if local patch release is less than the remote patch release,
-    # then just download the patch release.
+    # then just install the patch release.
     elif (localVersion < remoteVersion):
-        progressLabel['text'] = 'Downloading latest patch.'
+        progressLabel['text'] = 'Downloading latest patch (' + str(remoteVersion) + ') archive.'
 
-        file = open(patchArchive, 'wb')
-        zip = requests.get(urlPath + '/' + patchArchive)
-        file.write(zip.content)
-        file.close()
-
-        progressBar['value'] += 40
-        progressLabel['text'] = 'Unzipping patch file.'
-
-        file = ZipFile(patchArchive, 'r')
-        file.extractall()
-        file.close()
+        if (downloadErrorCheck(patchArchive) == False):
+            patchZip = requests.get(urlPath + '/' + patchArchive)
+            patchFile = open(patchArchive, 'wb')
+            patchFile.write(patchZip.content)
+            patchFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Removing patch file.'
+        progressLabel['text'] = 'Unzipping patch (' + str(remoteVersion) + ') archive.'
+
+        if (localErrorCheck(patchArchive) == False):
+            patchFile = ZipFile(patchArchive, 'r')
+            patchFile.extractall()
+            patchFile.close()
+
+        progressBar['value'] += 40
+        progressLabel['text'] = 'Removing patch (' + str(remoteVersion) + ') archive.'
 
         os.remove(patchArchive)
 
@@ -205,6 +193,57 @@ def updateGame():
     localVersionLabel['text'] = format(newVersion, '.2f')
     actions.entryconfigure('Update Game', state=DISABLED)
     updateButton['state'] = 'disabled'
+
+# Error handling for checking to see if local files exist
+def localErrorCheck(fileToCheck):
+    if (fileToCheck == 'version'):
+        try:
+            open(fileToCheck)
+        except FileNotFoundError:
+            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.', parent=window)
+            sys.exit()
+        else:
+            return False
+    else:
+        try:
+            ZipFile(fileToCheck)
+        except FileNotFoundError:
+            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' archive cannot be found.', parent=window)
+            sys.exit()
+        else:
+            return False
+
+# Error handling for checking to see if remote files can be reached
+def remoteErrorCheck(fileToCheck):
+    try:
+        urllib.request.urlopen(urlPath + '/' + fileToCheck).read()
+    except urllib.error.URLError as e:
+        if hasattr(e, 'reason'):
+            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + fileToCheck + ' information file.\n' + str(e.reason), parent=window)
+            if (fileToCheck == 'version'):
+                sys.exit()
+        elif hasattr(e, 'code'):
+            messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=window)
+            if (fileToCheck == 'version'):
+                sys.exit()
+    else:
+        return False
+
+# Error handling for downloading zip archives
+def downloadErrorCheck(fileToCheck):
+    try:
+        requests.get(urlPath + '/' + fileToCheck)
+    except requests.exceptions.Timeout:
+        # Maybe set up for a retry, or continue in a retry loop
+        messagebox.showerror('Prelude Error', 'Error', parent=window)
+    except requests.exceptions.TooManyRedirects:
+        # Tell the user their URL was bad and try a different one
+        messagebox.showerror('Prelude Error', 'Error', parent=window)
+    except requests.exceptions.RequestException as e:
+        # catastrophic error. bail.
+        messagebox.showerror('Prelude Error', 'Error', parent=window)
+    else:
+        return False
 
 # sets up the GUI
 window = Tk()
