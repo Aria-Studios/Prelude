@@ -58,11 +58,11 @@ def getLocalVersion():
 
 # Error handling for checking to see if local files exist
 def localErrorCheck(fileToCheck):
-    if (fileToCheck == 'version'):
+    if (fileToCheck == versionFile):
         try:
             open(fileToCheck)
         except FileNotFoundError:
-            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.', parent=window)
+            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.\nContact the ' + gameTitle + ' developers.', parent=window)
             sys.exit()
         else:
             return False
@@ -70,7 +70,7 @@ def localErrorCheck(fileToCheck):
         try:
             ZipFile(fileToCheck)
         except FileNotFoundError:
-            messagebox.showerror('Prelude Error', 'Local archive cannot be found.', parent=window)
+            messagebox.showerror('Prelude Error', 'Local archive cannot be found.\nContact the ' + gameTitle + ' developers.', parent=window)
             sys.exit()
         else:
             return False
@@ -106,11 +106,11 @@ def remoteErrorCheck(fileToCheck):
     except urllib.error.URLError as e:
         if hasattr(e, 'reason'):
             messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + fileToCheck + ' information file.\n' + str(e.reason), parent=window)
-            if (fileToCheck == 'version'):
+            if (fileToCheck == versionFile):
                 sys.exit()
         elif hasattr(e, 'code'):
             messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=window)
-            if (fileToCheck == 'version'):
+            if (fileToCheck == versionFile):
                 sys.exit()
     else:
         return False
@@ -128,7 +128,7 @@ def updateGame():
     # if the remote core release is not equal to the remote patch release,
     # then install both the core and patch releases.
     if (int(localVersion) < int(remoteVersion) and int(remoteVersion) != remoteVersion):
-        progressLabel['text'] = 'Downloading latest core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Downloading latest core (v' + str(int(remoteVersion)) + ') archive.'
 
         if (downloadErrorCheck(coreArchive) == False):
             coreZip = requests.get(urlPath + '/' + coreArchive, timeout=30)
@@ -137,7 +137,7 @@ def updateGame():
             coreFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Extracting core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting core (v' + str(int(remoteVersion)) + ') archive.'
 
         if (localErrorCheck(coreArchive) == False):
             coreFile = ZipFile(coreArchive, 'r')
@@ -145,12 +145,12 @@ def updateGame():
             coreFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Deleting core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting core (v' + str(int(remoteVersion)) + ') archive.'
 
         os.remove(coreArchive)
 
         progressBar['value'] += 10
-        progressLabel['text'] = 'Downloading latest patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Downloading latest patch (v' + str(remoteVersion) + ') archive.'
 
         if (downloadErrorCheck(patchArchive) == False):
             patchZip = requests.get(urlPath + '/' + patchArchive, timeout=30)
@@ -159,7 +159,7 @@ def updateGame():
             patchFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Extracting patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting patch (v' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(patchArchive) == False):
             patchFile = ZipFile(patchArchive, 'r')
@@ -167,7 +167,7 @@ def updateGame():
             patchFile.close()
 
         progressBar['value'] += 20
-        progressLabel['text'] = 'Deleting patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting patch (v' + str(remoteVersion) + ') archive.'
 
         os.remove(patchArchive)
 
@@ -177,7 +177,7 @@ def updateGame():
     # if the remote core release is equal to the remote patch release,
     # then just install the core release.
     elif (int(localVersion) < int(remoteVersion) and int(remoteVersion) == remoteVersion):
-        progressLabel['text'] = 'Downloading latest core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Downloading latest core (v' + str(int(remoteVersion)) + ') archive.'
 
         if (downloadErrorCheck(coreArchive) == False):
             coreZip = requests.get(urlPath + '/' + coreArchive, timeout=30)
@@ -186,7 +186,7 @@ def updateGame():
             coreFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Extracting core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting core (v' + str(int(remoteVersion)) + ') archive.'
 
         if (localErrorCheck(coreArchive) == False):
             coreFile = ZipFile(coreArchive, 'r')
@@ -194,7 +194,7 @@ def updateGame():
             coreFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Deleting core (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting core (v' + str(int(remoteVersion)) + ') archive.'
 
         os.remove(coreArchive)
 
@@ -203,7 +203,7 @@ def updateGame():
     # third case: if local patch release is less than the remote patch release,
     # then just install the patch release.
     elif (localVersion < remoteVersion):
-        progressLabel['text'] = 'Downloading latest patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Downloading latest patch (v' + str(remoteVersion) + ') archive.'
 
         if (downloadErrorCheck(patchArchive) == False):
             patchZip = requests.get(urlPath + '/' + patchArchive, timeout=30)
@@ -212,7 +212,7 @@ def updateGame():
             patchFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Extracting patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Extracting patch (v' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(patchArchive) == False):
             patchFile = ZipFile(patchArchive, 'r')
@@ -220,7 +220,7 @@ def updateGame():
             patchFile.close()
 
         progressBar['value'] += 40
-        progressLabel['text'] = 'Deleting patch (' + str(remoteVersion) + ') archive.'
+        progressLabel['text'] = 'Deleting patch (v' + str(remoteVersion) + ') archive.'
 
         os.remove(patchArchive)
 
@@ -235,7 +235,7 @@ def updateGame():
     # sets the localVersionLabel to the new version, displays a update confirmation
     # message, and re-enables the messages menu item
     newVersion = getLocalVersion()
-    localVersionLabel['text'] = format(newVersion, '.2f')
+    localVersionLabel['text'] = newVersion
     if (newVersion == remoteVersion):
         progressLabel['text'] = gameTitle + ' is now up to date!'
     else:
@@ -298,10 +298,10 @@ window.config(menu=menubar)
 mainFrame = ttk.Frame(window).grid(column=0, row=0)
 versionFrame = ttk.Frame(mainFrame, width=250, height=50).grid(column=0, row=0, columnspan=2, rowspan=2, sticky=N)
 ttk.Label(versionFrame, text='My Version:').grid(column=0, row=0, columnspan=1, rowspan=1, sticky=N, pady=10)
-localVersionLabel = ttk.Label(versionFrame, text=format(0, '.2f'))
+localVersionLabel = ttk.Label(versionFrame, text=0)
 localVersionLabel.grid(column=1, row=0, columnspan=1, rowspan=1, sticky=N, padx=50, pady=10)
 ttk.Label(versionFrame, text='Current Version:').grid(column=0, row=1, columnspan=1, rowspan=1, sticky=N, pady=10)
-remoteVersionLabel = ttk.Label(versionFrame, text=format(0, '.2f'))
+remoteVersionLabel = ttk.Label(versionFrame, text=0)
 remoteVersionLabel.grid(column=1, row=1, columnspan=1, rowspan=1, sticky=N, padx=50, pady=10)
 ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=2, columnspan=2, rowspan=1, sticky=N)
 
@@ -324,8 +324,8 @@ ttk.Label(creditFrame, text='Powered by Prelude v1').grid(column=0, row=8, colum
 # set the appropriate labels to the returned information
 localVersion = getLocalVersion()
 remoteVersion = getRemoteVersion()
-localVersionLabel['text'] = format(localVersion, '.2f')
-remoteVersionLabel['text'] = format(remoteVersion, '.2f')
+localVersionLabel['text'] = localVersion
+remoteVersionLabel['text'] = remoteVersion
 
 # display any remote messages
 displayMessages()
