@@ -1,6 +1,6 @@
 
 
-# Prelude Updater
+# Prelude
 Prelude is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. This was written in Python and developed/tested on Windows, but it should theoretically work on any OS (given the appropriate development environment to compile the executable file). Once you've edited the variables and compiled the code, you can include the executable file in your game download. This program can be launched in order to check for any updates that are available, then download and install those updates automatically. The program also has functionality to display a message to users if there is something important that needs to be communicated to them.
 
 # Getting Started
@@ -21,7 +21,7 @@ This section goes over how the program operates and should help you make the mos
 One of the first things to understand is that this program operates under the assumption that you use two different kind of updates: core and patch. Core releases are major releases which add or edit a large number of files, wherein it is easier/better to assume that you need to ship the whole game package again rather than attempting to create a patch download. Patch releases are minor releases that add or edit a smaller number of files; additionally, this type of release is cumulative to the last core release you published.
 
 ## `message`
-`message` is what enables you to communicate any important information to users, hosted only in your remote directory. You could use this for anything, such as communicating that the next release will be a large core download or if there are special events ongoing in your game (such as a Mystery Gift). If the file has content, the message will automatically be displayed when the program is started. After it has been dismissed, it can be displayed again via the relevant menu option. If the file is *empty*, the program will not display anything and the menu option will be disabled. See the screenshot below for what an example message will look like.
+`message` is what enables you to communicate any important information to users, hosted only in your remote directory. You could use this for anything, such as communicating that the next release will be a large core download or if there are special events ongoing in your game (such as a Mystery Gift). If the file has content, the message will automatically be displayed when the program is started. After it has been dismissed, it can be displayed again via the relevant menu option. If the file is *empty*, the program will not display anything and the menu option will be disabled; however, regardless of whether you make use of the feature, the file ***must*** be present in the directory. See the screenshot below for what an example message will look like.
 
 ![Example of displayed message.](https://media.ariastudio.dev/misc/prelude-message.png)
 

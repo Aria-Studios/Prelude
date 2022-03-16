@@ -4,25 +4,27 @@
 # START FILE EDITING HERE #
 # # # # # # # # # # # # # #
 
-# Title of your game
+# OPTIONAL: Title of your game (highly recommended, there will be
+# obvious gaps in the interface if not defined)
 gameTitle = 'Game Title'
 
-# A URL link to your game's information
+# OPTIONAL: A URL link to your game's information
 gameURL = 'https://reliccastle.com'
 
-# The URL path to where the remote files are stored, NO TRAILING SLASHES
+# REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
 urlPath = 'https://domain.com/downloads'
 
-# The message file name, NO STARTING OR TRAILING SLASHES
+# OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
+# message contents are controlled from the remote server, cannot be changed through update process)
 messageFile = 'message'
 
-# The version file name, NO STARTING OR TRAILING SLASHES
+# REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
 
-# The core file name, MUST BE ZIP format
+# REQUIRED: The core file name, MUST BE ZIP format
 coreArchive = 'core.zip'
 
-# The patch file name, MUST BE ZIP FORMAT
+# REQUIRED: The patch file name, MUST BE ZIP FORMAT
 patchArchive = 'patch.zip'
 
 # # # # # # # # # # # # # #
@@ -39,6 +41,11 @@ from tkinter import messagebox, ttk
 import os, requests, sys, threading, urllib.error, urllib.request, webbrowser
 from zipfile import ZipFile
 
+# checks if required variables are defined, if not display an error message and close
+if (urlPath == '' or versionFile == '' or coreArchive == '' or patchArchive == ''):
+    messagebox.showerror('Prelude Error', 'Error: data is missing from the program configuration.\nContact the ' + gameTitle + ' developers.')
+    sys.exit()
+
 # passes the versionFile to local error handling, if no errors are
 # found then it retireves the version number, converts it
 # to a float, and returns the result to the function call
@@ -48,6 +55,25 @@ def getLocalVersion():
         localVersion = float(file.read())
         file.close()
         return localVersion
+
+# Error handling for checking to see if local files exist
+def localErrorCheck(fileToCheck):
+    if (fileToCheck == 'version'):
+        try:
+            open(fileToCheck)
+        except FileNotFoundError:
+            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.', parent=window)
+            sys.exit()
+        else:
+            return False
+    else:
+        try:
+            ZipFile(fileToCheck)
+        except FileNotFoundError:
+            messagebox.showerror('Prelude Error', 'Local archive cannot be found.', parent=window)
+            sys.exit()
+        else:
+            return False
 
 # passes the versionFile to remote error handling, if no errors are
 # found then it retireves the version number, converts it
@@ -60,22 +86,44 @@ def getRemoteVersion():
 # passes the messageFile to remote error handling, if no errors are
 # found then it retireves the message contents, converts it
 # to a string, displays the contents in a message box and enables the menu action
-# (if there are any, otherwise it disables the menu action)
+# (if there are any, otherwise it disables the menu action [again])
 def displayMessages():
-    if (remoteErrorCheck(messageFile) == False):
-        messageContents = urllib.request.urlopen(urlPath + '/' + messageFile).read()
-        messageContents = messageContents.decode('UTF-8')
+    if (messageFile != ''):
+        if (remoteErrorCheck(messageFile) == False):
+            messageContents = urllib.request.urlopen(urlPath + '/' + messageFile).read()
+            messageContents = messageContents.decode('UTF-8')
 
-        if (messageContents != ''):
-            messagebox.showinfo('A Message from ' + gameTitle + ' Developers', messageContents, parent=window)
-            actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
-        else:
-            actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+            if (messageContents != ''):
+                messagebox.showinfo('A Message from the ' + gameTitle + ' Developers', messageContents, parent=window)
+                actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
+            else:
+                actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+
+# Error handling for checking to see if remote files can be reached
+def remoteErrorCheck(fileToCheck):
+    try:
+        urllib.request.urlopen(urlPath + '/' + fileToCheck).read()
+    except urllib.error.URLError as e:
+        if hasattr(e, 'reason'):
+            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + fileToCheck + ' information file.\n' + str(e.reason), parent=window)
+            if (fileToCheck == 'version'):
+                sys.exit()
+        elif hasattr(e, 'code'):
+            messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=window)
+            if (fileToCheck == 'version'):
+                sys.exit()
+    else:
+        return False
 
 # checks to see how versions compare. goes through cases in order until finds a match,
 # some code is executed the same way at each function call. all pieces are passed to
 # the relevant error handling function
 def updateGame():
+    # disables the update menu item & button, as well as the message menu item
+    actions.entryconfigure('Update Game', state=DISABLED)
+    actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+    updateButton['state'] = 'disabled'
+
     # first case: if local core release is less than remote core release AND
     # if the remote core release is not equal to the remote patch release,
     # then install both the core and patch releases.
@@ -124,7 +172,6 @@ def updateGame():
         os.remove(patchArchive)
 
         progressBar['value'] += 10
-        progressLabel['text'] = gameTitle + ' is now up to date!'
 
     # second case: if local core release is less than remote core release AND
     # if the remote core release is equal to the remote patch release,
@@ -152,7 +199,6 @@ def updateGame():
         os.remove(coreArchive)
 
         progressBar['value'] += 20
-        progressLabel['text'] = gameTitle + ' is now up to date!'
 
     # third case: if local patch release is less than the remote patch release,
     # then just install the patch release.
@@ -179,7 +225,6 @@ def updateGame():
         os.remove(patchArchive)
 
         progressBar['value'] += 20
-        progressLabel['text'] = gameTitle + ' is now up to date!'
 
     # fourth case: this shouldn't be happening, hence the error message.
     else:
@@ -187,47 +232,17 @@ def updateGame():
         progressLabel['text'] = 'Error.'
 
     # calls the getLocalVersion to read the new local version info,
-    # sets the localVersionLabel to the new version, disables both the
-    # Update Game menu option and main button
+    # sets the localVersionLabel to the new version, displays a update confirmation
+    # message, and re-enables the messages menu item
     newVersion = getLocalVersion()
     localVersionLabel['text'] = format(newVersion, '.2f')
-    actions.entryconfigure('Update Game', state=DISABLED)
-    updateButton['state'] = 'disabled'
-
-# Error handling for checking to see if local files exist
-def localErrorCheck(fileToCheck):
-    if (fileToCheck == 'version'):
-        try:
-            open(fileToCheck)
-        except FileNotFoundError:
-            messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.', parent=window)
-            sys.exit()
-        else:
-            return False
+    if (newVersion == remoteVersion):
+        progressLabel['text'] = gameTitle + ' is now up to date!'
     else:
-        try:
-            ZipFile(fileToCheck)
-        except FileNotFoundError:
-            messagebox.showerror('Prelude Error', 'Local archive cannot be found.', parent=window)
-            sys.exit()
-        else:
-            return False
-
-# Error handling for checking to see if remote files can be reached
-def remoteErrorCheck(fileToCheck):
-    try:
-        urllib.request.urlopen(urlPath + '/' + fileToCheck).read()
-    except urllib.error.URLError as e:
-        if hasattr(e, 'reason'):
-            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + fileToCheck + ' information file.\n' + str(e.reason), parent=window)
-            if (fileToCheck == 'version'):
-                sys.exit()
-        elif hasattr(e, 'code'):
-            messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=window)
-            if (fileToCheck == 'version'):
-                sys.exit()
-    else:
-        return False
+        progressLabel['text'] = 'Error: version information out of sync.'
+        messagebox.showerror('Prelude Error', 'Error: the local version information file is out of sync with the remote version information file.\nContact the ' + gameTitle + ' developers.', parent=window)
+    if (messageFile != ''):
+        actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
 
 # Error handling for downloading zip archives
 def downloadErrorCheck(fileToCheck):
@@ -235,19 +250,19 @@ def downloadErrorCheck(fileToCheck):
         dl = requests.get(urlPath + '/' + fileToCheck, timeout=30)
         dl.raise_for_status()
     except requests.exceptions.HTTPError as error:
-        messagebox.showerror('Prelude Error', 'HTTP error: ' + str(error) + '.\nContact ' + gameTitle + ' developers.', parent=window)
+        messagebox.showerror('Prelude Error', 'HTTP error: ' + str(error) + '.\nContact the ' + gameTitle + ' developers.', parent=window)
         sys.exit()
     except requests.exceptions.ConnectionError:
-        messagebox.showerror('Prelude Error', 'Connection error. \nContact ' + gameTitle + ' developers.', parent=window)
+        messagebox.showerror('Prelude Error', 'Connection error. \nContact the ' + gameTitle + ' developers.', parent=window)
         sys.exit()
     except requests.exceptions.TooManyRedirects:
-        messagebox.showerror('Prelude Error', 'Server connection exceeded maximum number of redirects.\nContact ' + gameTitle + ' developers.', parent=window)
+        messagebox.showerror('Prelude Error', 'Server connection exceeded maximum number of redirects.\nContact the ' + gameTitle + ' developers.', parent=window)
         sys.exit()
     except requests.exceptions.Timeout:
         messagebox.showerror('Prelude Error', 'Server connection timed out, try again later.', parent=window)
         sys.exit()
     except requests.exceptions.RequestException as error:
-        messagebox.showerror('Prelude Error', 'Error: ' + str(error) + '.\nContact ' + gameTitle + ' developers.', parent=window)
+        messagebox.showerror('Prelude Error', 'Error: ' + str(error) + '.\nContact the ' + gameTitle + ' developers.', parent=window)
         sys.exit()
     else:
         return False
@@ -272,7 +287,10 @@ actions.add_separator()
 actions.add_command(label='Close', command=sys.exit)
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
-about.add_command(label='About ' + gameTitle, command=lambda: webbrowser.open(gameURL))
+if (gameURL != ''):
+    about.add_command(label='About ' + gameTitle, command=lambda: webbrowser.open(gameURL))
+else:
+    about.add_command(label='About ' + gameTitle, command=lambda: webbrowser.open(gameURL), state='disabled')
 about.add_command(label='About Prelude', command=lambda: webbrowser.open('https://gitlab.com/ariastudios/prelude'))
 window.config(menu=menubar)
 
