@@ -22,7 +22,7 @@ messageFile = 'message'
 versionFile = 'version'
 
 # REQUIRED: The core file name, MUST BE ZIP format
-coreArchive = 'core.zip'
+coreArchive = 'core1.zip'
 
 # REQUIRED: The patch file name, MUST BE ZIP FORMAT
 patchArchive = 'patch.zip'
@@ -65,7 +65,14 @@ def localErrorCheck(fileToCheck):
             messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.\nContact the ' + gameTitle + ' developers.', parent=window)
             sys.exit()
         else:
-            return False
+            try:
+                file = open(fileToCheck, 'r')
+                localVersion = float(file.read())
+            except ValueError:
+                messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file contains invalid contents.\nContact the ' + gameTitle + ' developers.', parent=window)
+                sys.exit()
+            else:
+                return False
     else:
         try:
             ZipFile(fileToCheck)
@@ -95,9 +102,6 @@ def displayMessages():
 
             if (messageContents != ''):
                 messagebox.showinfo('A Message from the ' + gameTitle + ' Developers', messageContents, parent=window)
-                actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
-            else:
-                actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
 
 # Error handling for checking to see if remote files can be reached
 def remoteErrorCheck(fileToCheck):
@@ -113,6 +117,14 @@ def remoteErrorCheck(fileToCheck):
             if (fileToCheck == versionFile):
                 sys.exit()
     else:
+        if (fileToCheck == versionFile):
+            try:
+                float(urllib.request.urlopen(urlPath + '/' + fileToCheck).read())
+            except ValueError:
+                messagebox.showerror('Prelude Error', 'Remote ' + fileToCheck + ' information file contains invalid contents.\nContact the ' + gameTitle + ' developers.', parent=window)
+                sys.exit()
+            else:
+                return False
         return False
 
 # checks to see how versions compare. goes through cases in order until finds a match,
@@ -241,8 +253,7 @@ def updateGame():
     else:
         progressLabel['text'] = 'Error: version information out of sync.'
         messagebox.showerror('Prelude Error', 'Error: the local version information file is out of sync with the remote version information file.\nContact the ' + gameTitle + ' developers.', parent=window)
-    if (messageFile != ''):
-        actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
+    actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
 
 # Error handling for downloading zip archives
 def downloadErrorCheck(fileToCheck):
@@ -279,7 +290,7 @@ menubar = Menu(window)
 actions = Menu(menubar)
 menubar.add_cascade(label='Actions', menu=actions)
 actions.add_command(label='Update Game', command=lambda: threading.Thread(target=updateGame).start(), state='disabled')
-actions.add_command(label='Display Game Developer Messages', command=displayMessages, state='disabled')
+actions.add_command(label='Display Game Developer Messages', command=displayMessages)
 actions.add_separator()
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(urlPath + '/' + coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(urlPath + '/' + patchArchive))
