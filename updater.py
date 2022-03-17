@@ -12,7 +12,7 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://domain.com/downloads'
+urlPath = 'https://media.ariastudio.dev/prelude'
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
 # message contents are controlled from the remote server, cannot be changed through update process)
@@ -22,7 +22,7 @@ messageFile = 'message'
 versionFile = 'version'
 
 # REQUIRED: The core file name, MUST BE ZIP format
-coreArchive = 'core1.zip'
+coreArchive = 'core.zip'
 
 # REQUIRED: The patch file name, MUST BE ZIP FORMAT
 patchArchive = 'patch.zip'
@@ -44,7 +44,7 @@ from zipfile import ZipFile
 # checks if required variables are defined, if not display an error message and close
 if (urlPath == '' or versionFile == '' or coreArchive == '' or patchArchive == ''):
     messagebox.showerror('Prelude Error', 'Error: data is missing from the program configuration.\nContact the ' + gameTitle + ' developers.')
-    sys.exit()
+    close()
 
 # passes the versionFile to local error handling, if no errors are
 # found then it retireves the version number, converts it
@@ -63,14 +63,13 @@ def localErrorCheck(fileToCheck):
             open(fileToCheck)
         except FileNotFoundError:
             messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file cannot be found.\nContact the ' + gameTitle + ' developers.', parent=window)
-            sys.exit()
+            close()
         else:
             try:
-                file = open(fileToCheck, 'r')
-                localVersion = float(file.read())
+                float(open(fileToCheck).read())
             except ValueError:
                 messagebox.showerror('Prelude Error', 'Local ' + fileToCheck + ' information file contains invalid contents.\nContact the ' + gameTitle + ' developers.', parent=window)
-                sys.exit()
+                close()
             else:
                 return False
     else:
@@ -78,7 +77,7 @@ def localErrorCheck(fileToCheck):
             ZipFile(fileToCheck)
         except FileNotFoundError:
             messagebox.showerror('Prelude Error', 'Local archive cannot be found.\nContact the ' + gameTitle + ' developers.', parent=window)
-            sys.exit()
+            close()
         else:
             return False
 
@@ -111,18 +110,18 @@ def remoteErrorCheck(fileToCheck):
         if hasattr(e, 'reason'):
             messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + fileToCheck + ' information file.\n' + str(e.reason), parent=window)
             if (fileToCheck == versionFile):
-                sys.exit()
+                close()
         elif hasattr(e, 'code'):
             messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=window)
             if (fileToCheck == versionFile):
-                sys.exit()
+                close()
     else:
         if (fileToCheck == versionFile):
             try:
                 float(urllib.request.urlopen(urlPath + '/' + fileToCheck).read())
             except ValueError:
                 messagebox.showerror('Prelude Error', 'Remote ' + fileToCheck + ' information file contains invalid contents.\nContact the ' + gameTitle + ' developers.', parent=window)
-                sys.exit()
+                close()
             else:
                 return False
         return False
@@ -261,22 +260,27 @@ def downloadErrorCheck(fileToCheck):
         dl = requests.get(urlPath + '/' + fileToCheck, timeout=30)
         dl.raise_for_status()
     except requests.exceptions.HTTPError as error:
-        messagebox.showerror('Prelude Error', 'HTTP error: ' + str(error) + '.\nContact the ' + gameTitle + ' developers.', parent=window)
-        sys.exit()
+        messagebox.showerror('Prelude Error', 'HTTP error: #' + str(error) + '.\nContact the ' + gameTitle + ' developers.', parent=window)
+        close()
     except requests.exceptions.ConnectionError:
         messagebox.showerror('Prelude Error', 'Connection error. \nContact the ' + gameTitle + ' developers.', parent=window)
-        sys.exit()
+        close()
     except requests.exceptions.TooManyRedirects:
         messagebox.showerror('Prelude Error', 'Server connection exceeded maximum number of redirects.\nContact the ' + gameTitle + ' developers.', parent=window)
-        sys.exit()
+        close()
     except requests.exceptions.Timeout:
         messagebox.showerror('Prelude Error', 'Server connection timed out, try again later.', parent=window)
-        sys.exit()
+        close()
     except requests.exceptions.RequestException as error:
         messagebox.showerror('Prelude Error', 'Error: ' + str(error) + '.\nContact the ' + gameTitle + ' developers.', parent=window)
-        sys.exit()
+        close()
     else:
         return False
+
+# functions to fully close the program at any point
+def close():
+    window.quit()
+    sys.exit()
 
 # sets up the GUI
 window = Tk()
@@ -295,7 +299,7 @@ actions.add_separator()
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(urlPath + '/' + coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(urlPath + '/' + patchArchive))
 actions.add_separator()
-actions.add_command(label='Close', command=sys.exit)
+actions.add_command(label='Close', command=close)
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
 if (gameURL != ''):
@@ -324,7 +328,7 @@ progressLabel = ttk.Label(updateFrame, text='Select an option below.')
 progressLabel.grid(column=0, row=4, columnspan=2, rowspan=1, sticky=N, pady=3)
 updateButton = ttk.Button(updateFrame, text='Update Game', command=lambda: threading.Thread(target=updateGame).start(), state='disabled')
 updateButton.grid(column=0, row=5, columnspan=2, rowspan=1, sticky=N, pady=10)
-closeButton = ttk.Button(updateFrame, text='Close', command=sys.exit).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
+closeButton = ttk.Button(updateFrame, text='Close', command=close).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
 
 # displays Prelude credits
 ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
