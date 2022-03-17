@@ -12,7 +12,7 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
 # message contents are controlled from the remote server, cannot be changed through update process)
@@ -294,7 +294,10 @@ menubar = Menu(window)
 actions = Menu(menubar)
 menubar.add_cascade(label='Actions', menu=actions)
 actions.add_command(label='Update Game', command=lambda: threading.Thread(target=updateGame).start(), state='disabled')
-actions.add_command(label='Display Game Developer Messages', command=displayMessages)
+if (messageFile != ''):
+    actions.add_command(label='Display Game Developer Messages', command=displayMessages)
+else:
+    actions.add_command(label='Display Game Developer Messages', command=displayMessages, state='disabled')
 actions.add_separator()
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(urlPath + '/' + coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(urlPath + '/' + patchArchive))
@@ -343,7 +346,8 @@ localVersionLabel['text'] = localVersion
 remoteVersionLabel['text'] = remoteVersion
 
 # display any remote messages
-displayMessages()
+if (messageFile != ''):
+    displayMessages()
 
 # if the local version is out of date, enable the update options
 if (localVersion < remoteVersion):
