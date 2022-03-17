@@ -1,4 +1,4 @@
-
+![Prelude interface.](https://media.ariastudio.dev/misc/prelude.png)
 
 # Prelude
 Prelude is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. It is written using Python 3.10.2 and developed/tested on Windows, but it should theoretically work on any OS (given the appropriate development environment to compile the executable file). Once you've edited the variables and compiled the code, you can include the executable file in your base game download. This program can be launched in order to check for any updates that are available, then download and install those updates automatically. The program also has the functionality to display a message to users if there is something important that needs to be communicated to them.
@@ -65,6 +65,8 @@ patchArchive = 'patch.zip'
 ## `core.zip`
 The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `version` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
+![Example of core.zip layout.](https://media.ariastudio.dev/misc/prelude-core.png)
+
 ## `patch.zip`
 The `patch.zip` archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should contain an updated `version` information file that matches to this patch release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
@@ -77,3 +79,10 @@ Locally, this program works off the assumption that it will be run in the same l
 
 ## Remote (Downloads Directory)
 On the remote server, the setup is fairly simple: pick a location and put the `version` information file, `core.zip` archive, `patch.zip` archive, and the `message` information file (if you're making use of this feature) there. As long as it can be reached by a standard HTTP request, then the program can function correctly. See the screenshot below for what an example setup should look like.
+
+![Example of remote folder layout.](https://media.ariastudio.dev/misc/prelude-remote.png)
+
+# Future Plans
+* Add more error handling.
+* Cleaning up the code organization.
+* Alpha/beta track releases.
