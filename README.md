@@ -11,8 +11,8 @@ Prelude is a simple update utility designed for use with Pokémon fangames made 
 # Getting Started
 ## Requirements
 * [Python](https://www.python.org/downloads/)
- * tkinter (be sure to select the option that includes this when you install Python)
- * [requests](https://docs.python-requests.org/en/latest/user/install/#install)
+  * tkinter (be sure to select the option that includes this when you install Python)
+  * [requests](https://docs.python-requests.org/en/latest/user/install/#install)
 * [pyinstaller](https://pyinstaller.readthedocs.io/en/stable/installation.html)
 * [auto-py-to-exe](https://pypi.org/project/auto-py-to-exe/)
 * Remote server to store the files
