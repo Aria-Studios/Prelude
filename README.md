@@ -42,7 +42,7 @@ One of the first things to understand is that this program operates under the as
 ![Example of displayed message.](https://media.ariastudio.dev/misc/prelude-message.png)
 
 ## `updater.py`
-`updater.py` contains the code which runs the program, as well as several values that you ***must*** set in order for the program to function. These are what defines what files the program will look for and where it will look for them. One *very* important thing to note is that the program cannot update itself as part of the update process; in other words, if you need to change these values at a later point, you'll need to distribute an updated executable file which can then replace the old executable.
+`updater.py` contains the code which runs the program, as well as several values that you ***must*** set in order for the program to function. These are what defines what files the program will look for and where it will look for them. One *very* important thing to note is that the program cannot update itself as part of the update process; in other words, if you need to change these values at a later point, you'll need to distribute an updated executable file which can then replace the old executable (which must be done manually).
 
 ```Python
 gameTitle = 'Game Title'
@@ -63,12 +63,12 @@ patchArchive = 'patch.zip'
 * `patchArchive` (required) is the name of the *remote* ***zip*** archive that contains your latest patch release.
 
 ## `core.zip`
-The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `version` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
+The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `version` information file that matches to this core release, which will overwrite the user's current local copy when they update. It cannot contain the executable file for the updater under the same name as the user's current local copy. See the screenshot below for what an example setup should look like.
 
 ![Example of core.zip layout.](https://media.ariastudio.dev/misc/prelude-core.png)
 
 ## `patch.zip`
-The `patch.zip` archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should contain an updated `version` information file that matches to this patch release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
+The `patch.zip` archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should contain an updated `version` information file that matches to this patch release, which will overwrite the user's current local copy when they update. It cannot contain the executable file for the updater under the same name as the user's current local copy. See the screenshot below for what an example setup should look like.
 
 ![Example of patch.zip layout.](https://media.ariastudio.dev/misc/prelude-patch.png)
 
