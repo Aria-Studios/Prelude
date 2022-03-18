@@ -38,8 +38,7 @@ patchArchive = 'patch.zip'
 # os to delete archives when done
 from tkinter import *
 from tkinter import messagebox, ttk
-import os, requests, sys, threading, urllib.error, urllib.request, webbrowser
-from zipfile import ZipFile
+import os, requests, sys, threading, urllib.error, urllib.request, webbrowser, zipfile
 
 # checks if required variables are defined, if not display an error message and close
 if (urlPath == '' or versionFile == '' or coreArchive == '' or patchArchive == ''):
@@ -74,9 +73,16 @@ def localErrorCheck(fileToCheck):
                 return False
     else:
         try:
-            ZipFile(fileToCheck)
+            updateFile = zipfile.ZipFile(fileToCheck, 'r')
+            updateFile.extractall()
         except FileNotFoundError:
             messagebox.showerror('Prelude Error', 'Local archive cannot be found.\nContact the ' + gameTitle + ' developers.', parent=window)
+            close()
+        except zipfile.BadZipFile:
+            messagebox.showerror('Prelude Error', 'Local archive ' + fileToCheck + ' is corrupted.\nContact the ' + gameTitle + ' developers.', parent=window)
+            close()
+        except PermissionError:
+            messagebox.showerror('Prelude Error', 'Local archive ' + fileToCheck + ' contains files currently being used by programs.\nContact the ' + gameTitle + ' developers.', parent=window)
             close()
         else:
             return False
