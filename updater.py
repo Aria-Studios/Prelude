@@ -157,7 +157,7 @@ def updateGame():
         progressLabel['text'] = 'Extracting core (v' + str(int(remoteVersion)) + ') archive.'
 
         if (localErrorCheck(coreArchive) == False):
-            coreFile = ZipFile(coreArchive, 'r')
+            coreFile = zipfile.ZipFile(coreArchive, 'r')
             coreFile.extractall()
             coreFile.close()
 
@@ -179,7 +179,7 @@ def updateGame():
         progressLabel['text'] = 'Extracting patch (v' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(patchArchive) == False):
-            patchFile = ZipFile(patchArchive, 'r')
+            patchFile = zipfile.ZipFile(patchArchive, 'r')
             patchFile.extractall()
             patchFile.close()
 
@@ -206,7 +206,7 @@ def updateGame():
         progressLabel['text'] = 'Extracting core (v' + str(int(remoteVersion)) + ') archive.'
 
         if (localErrorCheck(coreArchive) == False):
-            coreFile = ZipFile(coreArchive, 'r')
+            coreFile = zipfile.ZipFile(coreArchive, 'r')
             coreFile.extractall()
             coreFile.close()
 
@@ -232,7 +232,7 @@ def updateGame():
         progressLabel['text'] = 'Extracting patch (v' + str(remoteVersion) + ') archive.'
 
         if (localErrorCheck(patchArchive) == False):
-            patchFile = ZipFile(patchArchive, 'r')
+            patchFile = zipfile.ZipFile(patchArchive, 'r')
             patchFile.extractall()
             patchFile.close()
 
