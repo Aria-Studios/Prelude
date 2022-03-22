@@ -84,5 +84,5 @@ On the remote server, the setup is fairly simple: pick a location and put the `v
 
 # Future Plans
 * Add more error handling.
-* Cleaning up the code organization.
+* ~Cleaning up the code organization.~
 * Alpha/beta track releases.
