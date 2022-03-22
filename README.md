@@ -5,7 +5,7 @@ Prelude is a simple update utility designed for use with Pokémon fangames made 
 
 # Features
 * Check the game version, both locally and remotely
-* Download and install the latest updates for a game
+* Download and install the latest updates for a game automatically
 * Display a message through the program which can be changed remotely at any time
 
 # Getting Started
@@ -22,8 +22,8 @@ Prelude is a simple update utility designed for use with Pokémon fangames made 
 1. When you're ready, install Python (be sure to add `python` to your PATH), pyinstaller, auto-py-to-exe, and the two modules listed above.
 1. Grab the [latest release](https://gitlab.com/ariastudios/prelude/-/releases) of the source code.
 1. Setup the remote server's file structure similarly to how it was illustrated below.
-1. Using the remote server's information, edit the values at the beginning of `updater.py`.
-1. Using either auto-py-to-exe (a GUI-based program) or pyinstaller (a CLI-based program), compile the source code into an executable file. I recommend auto-py-to-exe for the sake of simplicity.
+1. Using the remote server's information, edit the values in `config.py`.
+1. Using either auto-py-to-exe (a GUI-based program) or pyinstaller (a CLI-based program), compile the source code into an executable file targeting `updater.py`. I recommend auto-py-to-exe for the sake of simplicity.
 1. Test the resulting program in order to make sure that everything functions correctly.
 1. Begin including the necessary files in your game downloads.
 
@@ -33,16 +33,18 @@ This section goes over how the program operates and should help you make the mos
 ## "core" vs "patch"
 One of the first things to understand is that this program operates under the assumption that you use two different kind of updates: core and patch. Core releases are major releases which add or edit a large number of files, wherein it is easier/better to assume that you need to ship the whole game package again rather than attempting to create a patch download. Patch releases are minor releases that add or edit a smaller number of files; additionally, this type of release is ***cumulative*** to the last core release you published.
 
+One *very* important thing to note is that the program cannot update itself as part of the update process. The program does have the functionality to check a downloaded archive for a file that possess the same name as it, and then display a warning message that the update must be manually applied (by extracting the downloaded archive directly into the game directory) before closing the program. This check will occur on any given archive, which means that you must make a choice in how to distribute an updated compiled program; this might mean having the updated updater be in a few patch releases or holding off for any updates until a new core release. This choice is up to you.
+
 ## `version`
 `version` is a simple file that contains a float (number with a decimal place) value with your release information. This program is capable of up to four decimal points of precision (over 9000 patch releases), but has only been tested extensively using two decimal points of precision. As such, we recommend the use of a version scheme such as `1.23` for your project. The program will view the whole number (`1.##`) as the core release and the decimal places (`#.23`) as the patch release. The `version` file included in your `core.zip` should always indicate a core release (`1.0`, `2.0`, etc), while the file included in your `patch.zip` (if you have one) should always match with the remote server's `version` file. One last important point to keep in mind with this program is that it cannot recognize the difference between values like `1.1` and `1.10`.
 
 ## `message`
-`message` is what enables you to communicate any important information to users, hosted only in your remote server directory. You could use this for anything, such as communicating that the next release will be a large core download or if there are special events ongoing in your game (such as a Mystery Gift). If the file has content, the message will automatically be displayed when the program is started. After it has been dismissed, it can be displayed again via the relevant menu option. If the file is *empty*, the program will not display anything when started. If you did not define a value for the message file, the program will not check for messages when started and the menu item will be disabled. If you defined a value for the message file, but the file is not present in your remote server directory, the program will display an error message anytime it is started or if the menu item is triggered. See the screenshot below for what an example message can look like.
+`message` is what enables you to communicate any important information to users and is hosted only in your remote server directory. You could use this for anything, such as communicating that the next release will be a large core download or if there are special events ongoing in your game (such as a Mystery Gift). If the file has content, the message will automatically be displayed when the program is started. After it has been dismissed, it can be displayed again via the relevant menu option. If the file is *empty*, the program will not display anything when started. If you did not define a value for the message file in `config.py`, the program will not check for messages when started and the menu item will be disabled. If you defined a value for the message file, but the file is not present in your remote server directory, the program will display an error message anytime it is started or if the menu item is triggered. See the screenshot below for what an example message can look like.
 
 ![Example of displayed message.](https://media.ariastudio.dev/misc/prelude-message.png)
 
-## `updater.py`
-`updater.py` contains the code which runs the program, as well as several values that you ***must*** set in order for the program to function. These are what defines what files the program will look for and where it will look for them. One *very* important thing to note is that the program cannot update itself as part of the update process; in other words, if you need to change these values at a later point, you'll need to distribute an updated executable file which can then replace the old executable (which must be done manually).
+## `config.py`
+`config.py` contains several values that you ***must*** set in order for the program to function. These are what defines how the program will function, including where the program will look for remote files.
 
 ```Python
 gameTitle = 'Game Title'
@@ -63,17 +65,17 @@ patchArchive = 'patch.zip'
 * `patchArchive` (required) is the name of the *remote* ***zip*** archive that contains your latest patch release.
 
 ## `core.zip`
-The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `version` information file that matches to this core release, which will overwrite the user's current local copy when they update. It cannot contain the executable file for the updater under the same name as the user's current local copy. See the screenshot below for what an example setup should look like.
+The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `version` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
 ![Example of core.zip layout.](https://media.ariastudio.dev/misc/prelude-core.png)
 
 ## `patch.zip`
-The `patch.zip` archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should contain an updated `version` information file that matches to this patch release, which will overwrite the user's current local copy when they update. It cannot contain the executable file for the updater under the same name as the user's current local copy. See the screenshot below for what an example setup should look like.
+The `patch.zip` archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should contain an updated `version` information file that matches to this patch release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
 ![Example of patch.zip layout.](https://media.ariastudio.dev/misc/prelude-patch.png)
 
 ## Local (Game Folder)
-Locally, this program works off the assumption that it will be run in the same location as your game executable. This means that you'll need to include two (2) files with your base game: the `updater` executable and `version` information file. See the screenshot below for what an example setup should look like.
+Locally, this program works off the assumption that it will be run in the same location as your game executable. This means that you'll need to include two (2) files with your base game: the executable itself and `version` information file. See the screenshot below for what an example setup should look like.
 
 ![Example of local folder layout.](https://media.ariastudio.dev/misc/prelude-local.png)
 
@@ -84,5 +86,4 @@ On the remote server, the setup is fairly simple: pick a location and put the `v
 
 # Future Plans
 * Add more error handling.
-* ~Cleaning up the code organization.~
-* Alpha/beta track releases.
+* Alpha/beta channel releases.
