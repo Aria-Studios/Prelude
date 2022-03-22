@@ -10,7 +10,7 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
 # message contents are controlled from the remote server, cannot be changed through update process)
@@ -23,4 +23,4 @@ versionFile = 'version'
 coreArchive = 'core.zip'
 
 # REQUIRED: The patch file name, MUST BE ZIP FORMAT
-patchArchive = 'stress-patch.zip'
+patchArchive = 'patch.zip'

@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import messagebox, ttk
-import requests, urllib, zipfile
+import os, requests, sys, urllib, zipfile
 
 import config, gui
 
@@ -31,8 +31,12 @@ def localCheck(fileToCheck):
             messagebox.showerror('Prelude Error', 'Local archive ' + fileToCheck + ' is corrupted.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
             gui.close()
         except PermissionError:
-            messagebox.showerror('Prelude Error', 'Local archive ' + fileToCheck + ' contains files currently being used by programs.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
-            gui.close()
+            if (os.path.basename(sys.argv[0]) in updateFile.namelist()):
+                messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + fileToCheck + ' archive directly into the game directory.', parent=gui.window)
+                gui.close()
+            else:
+                messagebox.showerror('Prelude Error', 'Local archive ' + fileToCheck + ' contains files currently being used by other programs.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+                gui.close()
         else:
             return False
 

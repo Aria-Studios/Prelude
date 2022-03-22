@@ -91,7 +91,10 @@ def updateGame():
 # handles the actual updating, based on the targetted archive and what kind of update it is
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
-    gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
+    if (updateTarget == config.coreArchive):
+        gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
+    else:
+        gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
     if (errorHandling.downloadCheck(updateTarget) == False):
         if (shutil.disk_usage(os.getcwd()).free < int(requests.head(config.urlPath + '/' + updateTarget).headers['Content-length'])):
@@ -102,7 +105,10 @@ def updateAction(updateTarget, updateType):
         updateFile.close()
 
     gui.updatePBar(updateType)
-    gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
+    if (updateTarget == config.coreArchive):
+        gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
+    else:
+        gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
     if (errorHandling.localCheck(updateTarget) == False):
         updateFile = zipfile.ZipFile(updateTarget, 'r')
@@ -110,7 +116,10 @@ def updateAction(updateTarget, updateType):
         updateFile.close()
 
     gui.updatePBar(updateType)
-    gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
+    if (updateTarget == config.coreArchive):
+        gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
+    else:
+        gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
     if (errorHandling.localCheck(updateTarget) == False):
         os.remove(updateTarget)
