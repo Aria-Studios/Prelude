@@ -28,7 +28,7 @@ Prelude is a simple update utility designed for use with Pokémon fangames made 
 1. Begin including the necessary files in your game downloads.
 
 # File Setup and Structure
-This section goes over how the program operates and should help you make the most of it, while reducing any errors experienced.
+This section goes over how the program operates and should help you make the most of it, while reducing any errors experienced. One caveat that should be kept in mind throughout the process as a whole is that due to Python limitations hidden files should not be used at all. It results in an error as the program will be unable to automatically extract the files and overwrite them. There is a built-in error message, but it is not intended for this purpose.
 
 ## "core" vs "patch"
 One of the first things to understand is that this program operates under the assumption that you use two different kind of updates: core and patch. Core releases are major releases which add or edit a large number of files, wherein it is easier/better to assume that you need to ship the whole game package again rather than attempting to create a patch download. Patch releases are minor releases that add or edit a smaller number of files; additionally, this type of release is ***cumulative*** to the last core release you published.
