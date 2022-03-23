@@ -84,6 +84,11 @@ On the remote server, the setup is fairly simple: pick a location and put the `v
 
 ![Example of remote folder layout.](https://media.ariastudio.dev/misc/prelude-remote.png)
 
+# Testing
+Prelude is tested against several different scenarios before any new code release. You can look at the list of scenarios we test against [here](https://docs.google.com/spreadsheets/d/188AKWlHg5QAhtioRswFOT3Xm4uZ1Rmn-n1u9BfvxH-o/edit?usp=sharing) and if you can think of any scenarios that are not covered by those in the list, please let us know so we can add those to our slate for next time.
+
 # Future Plans
 * Add more error handling.
 * Alpha/beta channel releases.
+* Bug fixes (please let us know if you encounter any bugs and we will work to address those in the next release if possible)
+* If you have any ideas for features, please feel free to let us know and we will evaluate whether it is feasible, worthwhile, or within the scope of the program to implement.
