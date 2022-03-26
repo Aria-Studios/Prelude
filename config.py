@@ -10,7 +10,7 @@ gameTitle = 'Game Title'
 gameURL = 'https://reliccastle.com'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://domain.com/downloads'
+urlPath = 'https://media.ariastudio.dev/prelude'
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
 # message contents are controlled from the remote server, cannot be changed through update process)
@@ -24,3 +24,11 @@ coreArchive = 'core.zip'
 
 # REQUIRED: The patch file name, MUST BE ZIP FORMAT
 patchArchive = 'patch.zip'
+
+privateBuildChannelName = 'Private'
+
+authMethod = 'univPwd'
+
+passwordFile = 'password'
+
+authResetFile = ''

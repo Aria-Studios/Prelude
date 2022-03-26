@@ -7,7 +7,7 @@ from tkinter import *
 from tkinter import messagebox, ttk
 import os, requests, shutil, threading, urllib, zipfile
 
-import config, gui, errorHandling
+import config, gui, errorHandling, authorization
 
 # checks if required variables are defined, if not display an error message and close
 if (config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''):
@@ -137,6 +137,13 @@ gui.remoteVersionLabel['text'] = remoteVersion
 if (config.messageFile != ''):
     displayMessages()
     gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages, state=NORMAL)
+
+if (config.authMethod == 'none'):
+    gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
+    gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+    gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+else:
+    gui.privateBuildChannel.entryconfigure('Authorization', command=authorization.authWindow)
 
 # if the local version is out of date, enable the update options
 if (localVersion < remoteVersion):
