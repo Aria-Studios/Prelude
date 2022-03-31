@@ -79,4 +79,4 @@ closeButton = ttk.Button(updateFrame, text='Close', command=close).grid(column=0
 # displays Prelude credits
 ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
 creditFrame = ttk.Frame(mainFrame, width=300, height=25).grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S)
-ttk.Label(creditFrame, text='Powered by Prelude v2').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
+ttk.Label(creditFrame, text='Powered by Prelude v2.5').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)

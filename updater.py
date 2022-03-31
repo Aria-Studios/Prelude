@@ -5,9 +5,9 @@
 # os to delete archives when done
 from tkinter import *
 from tkinter import messagebox, ttk
-import os, requests, shutil, threading, urllib, zipfile
+import os, requests, shutil, sys, threading, urllib, zipfile
 
-import config, gui, errorHandling, authorization
+import config, gui, authorization
 
 # checks if required variables are defined, if not display an error message and close
 if (config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''):
@@ -18,38 +18,73 @@ if (config.urlPath == '' or config.versionFile == '' or config.coreArchive == ''
 # found then it retireves the version number, converts it
 # to a float, and returns the result to the function call
 def getLocalVersion():
-    if (errorHandling.localCheck(config.versionFile) == False):
+    try:
         file = open(config.versionFile, 'r')
         localVersion = float(file.read())
-        file.close()
-        return localVersion
+    except FileNotFoundError:
+        messagebox.showerror('Prelude Error', 'Local ' + config.versionFile + ' information file cannot be found.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+    except ValueError:
+        messagebox.showerror('Prelude Error', 'Local ' + config.versionFile + ' information file contains invalid contents.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+
+    file.close()
+
+    return localVersion
 
 # passes the versionFile to remote error handling, if no errors are
 # found then it retireves the version number, converts it
 # to a float, and returns the result to the function call
 def getRemoteVersion():
-    if (errorHandling.remoteCheck(config.versionFile) == False):
+    try:
         remoteVersion = float(urllib.request.urlopen(config.urlPath + '/' + config.versionFile).read())
-        return remoteVersion
+    except urllib.error.URLError as e:
+        if hasattr(e, 'reason'):
+            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.versionFile + ' information file.\n' + str(e.reason), parent=gui.window)
+            gui.close()
+        elif hasattr(e, 'code'):
+            messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=gui.window)
+            gui.close()
+    except ValueError:
+        messagebox.showerror('Prelude Error', 'Remote ' + config.versionFile + ' information file contains invalid contents.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+
+    return remoteVersion
 
 # passes the messageFile to remote error handling, if no errors are
 # found then it retireves the message contents, converts it
 # to a string, displays the contents in a message box and enables the menu action
 # (if there are any, otherwise it disables the menu action [again])
 def displayMessages():
-    if (config.messageFile != ''):
-        if (errorHandling.remoteCheck(config.messageFile) == False):
+    if (localVersion == 0 and config.installMessage != ''):
+        messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', config.installMessage, parent=gui.window)
+
+    if (localVersion != 0 and config.messageFile != ''):
+        try:
             messageContents = urllib.request.urlopen(config.urlPath + '/' + config.messageFile).read()
-            messageContents = messageContents.decode('UTF-8')
+        except urllib.error.URLError as e:
+            if hasattr(e, 'reason'):
+                messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.messageFile + ' information file.\n' + str(e.reason), parent=gui.window)
+            elif hasattr(e, 'code'):
+                messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n' + str(e.code), parent=gui.window)
 
-            if (messageContents != ''):
-                messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContents, parent=gui.window)
+        messageContents = messageContents.decode('UTF-8')
 
+        if (messageContents != ''):
+            messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContents, parent=gui.window)
+
+    if (config.messageFile != ''):
+        gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages, state=NORMAL)
 
 # logic tree to determine what gets updated
 def updateGame():
+    messagebox.showwarning('Prelude Warning', 'This program is still in development and will not reflect the status of your download. Please give it time to work. You can check your task manager to see if it is still processing the download (check the RAM usage) if necessary.', parent=gui.window)
+
     # disables the update menu item & button, as well as the message menu item
-    gui.actions.entryconfigure('Update Game', state=DISABLED)
+    if (localVersion == 0):
+        gui.actions.entryconfigure('Install Game', state=DISABLED)
+    else:
+        gui.actions.entryconfigure('Update Game', state=DISABLED)
     gui.actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
     gui.updateButton['state'] = 'disabled'
 
@@ -96,13 +131,31 @@ def updateAction(updateTarget, updateType):
     else:
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
-    if (errorHandling.downloadCheck(updateTarget) == False):
-        if (shutil.disk_usage(os.getcwd()).free < int(requests.head(config.urlPath + '/' + updateTarget).headers['Content-length'])):
-            messagebox.showwarning('Prelude Warning', 'Warning: your hard drive may not have enough space for this download.', parent=gui.window)
+    if (shutil.disk_usage(os.getcwd()).free < int(requests.head(config.urlPath + '/' + updateTarget).headers['Content-length'])):
+        messagebox.showwarning('Prelude Warning', 'Warning: your hard drive may not have enough space for this download.', parent=gui.window)
+
+    try:
         updateZip = requests.get(config.urlPath + '/' + updateTarget, timeout=30)
-        updateFile = open(updateTarget, 'wb')
-        updateFile.write(updateZip.content)
-        updateFile.close()
+        updateZip.raise_for_status()
+    except requests.exceptions.HTTPError as error:
+        messagebox.showerror('Prelude Error', 'HTTP error: #' + str(error) + '.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+    except requests.exceptions.ConnectionError:
+        messagebox.showerror('Prelude Error', 'Connection error. \nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+    except requests.exceptions.TooManyRedirects:
+        messagebox.showerror('Prelude Error', 'Server connection exceeded maximum number of redirects.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+    except requests.exceptions.Timeout:
+        messagebox.showerror('Prelude Error', 'Server connection timed out, try again later.', parent=gui.window)
+        gui.close()
+    except requests.exceptions.RequestException as error:
+        messagebox.showerror('Prelude Error', 'Error: ' + str(error) + '.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+
+    updateFile = open(updateTarget, 'wb')
+    updateFile.write(updateZip.content)
+    updateFile.close()
 
     gui.updatePBar(updateType)
     if (updateTarget == config.coreArchive):
@@ -110,10 +163,24 @@ def updateAction(updateTarget, updateType):
     else:
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
-    if (errorHandling.localCheck(updateTarget) == False):
+    try:
         updateFile = zipfile.ZipFile(updateTarget, 'r')
         updateFile.extractall()
-        updateFile.close()
+    except FileNotFoundError:
+        messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' cannot be found.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+    except zipfile.BadZipFile:
+        messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' is corrupted.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
+    except PermissionError:
+        if (os.path.basename(sys.argv[0]) in updateTarget.namelist()):
+            messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
+            gui.close()
+        else:
+            messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' contains files currently being used by other programs.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+            gui.close()
+
+    updateFile.close()
 
     gui.updatePBar(updateType)
     if (updateTarget == config.coreArchive):
@@ -121,8 +188,11 @@ def updateAction(updateTarget, updateType):
     else:
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
-    if (errorHandling.localCheck(updateTarget) == False):
+    try:
         os.remove(updateTarget)
+    except FileNotFoundError:
+        messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' cannot be found.\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
 
     gui.updatePBar(updateType)
 
@@ -132,21 +202,22 @@ localVersion = getLocalVersion()
 remoteVersion = getRemoteVersion()
 gui.localVersionLabel['text'] = localVersion
 gui.remoteVersionLabel['text'] = remoteVersion
-
-# display any remote messages
-if (config.messageFile != ''):
-    displayMessages()
-    gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages, state=NORMAL)
+displayMessages()
 
 if (config.authMethod == 'none'):
     gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
     gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
     gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
 else:
-    gui.privateBuildChannel.entryconfigure('Authorization', command=authorization.authWindow)
+    gui.privateBuildChannel.entryconfigure('Authorization', command=lambda: threading.Thread(target=authorization.authWindow).start())
 
 # if the local version is out of date, enable the update options
-if (localVersion < remoteVersion):
+if (localVersion == 0):
+    gui.actions.entryconfigure('Update Game', label='Install Game', command=lambda: threading.Thread(target=updateGame).start(), state=NORMAL)
+    gui.updateButton['text'] = 'Install Game'
+    gui.updateButton['command'] = lambda: threading.Thread(target=updateGame).start()
+    gui.updateButton['state'] = NORMAL
+elif (localVersion < remoteVersion):
     gui.actions.entryconfigure('Update Game', command=lambda: threading.Thread(target=updateGame).start(), state=NORMAL)
     gui.updateButton['command'] = lambda: threading.Thread(target=updateGame).start()
     gui.updateButton['state'] = NORMAL
