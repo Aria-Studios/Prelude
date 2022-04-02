@@ -38,11 +38,8 @@ actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.op
 actions.add_separator()
 actions.add_command(label='Close', command=close)
 privateBuildChannel = Menu(menubar)
-if (config.authMethod != ''):
-    menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel)
-else:
-    menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel, state='disabled')
-privateBuildChannel.add_command(label='Authorization', command=None)
+menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel)
+privateBuildChannel.add_command(label='Authorization', command=None, state='disabled')
 privateBuildChannel.add_separator()
 privateBuildChannel.add_command(label='Install ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
 privateBuildChannel.add_command(label='Update ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')

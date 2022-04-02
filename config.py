@@ -17,7 +17,7 @@ urlPath = 'https://domain.com/downloads'
 messageFile = 'message'
 
 # OPTIONAL: message if local version is 0
-installMessage = 'This is also a test.'
+installMessage = 'This is a test.'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -36,3 +36,9 @@ authMethod = ''
 
 # OPTIONAL: remote password file
 passwordFile = 'password'
+
+# OPTIONAL: local authtoken file
+tokenFile = 'authtoken'
+
+# OPTIONAL: Fernet key for authtoken encryption
+cryptKey = ''
