@@ -33,6 +33,10 @@ menubar.add_cascade(label='Actions', menu=actions)
 actions.add_command(label='Update Game', command=None, state='disabled')
 actions.add_command(label='Display Game Developer Messages', command=None, state='disabled')
 actions.add_separator()
+if (config.changelogURL != ''):
+    actions.add_command(label='View Changelog', command=lambda: webbrowser.open(config.changelogURL))
+else:
+    actions.add_command(label='View Changelog', state='disabled')
 actions.add_command(label='Download Latest Core', command=lambda: webbrowser.open(config.urlPath + '/' + config.coreArchive))
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(config.urlPath + '/' + config.patchArchive))
 actions.add_separator()
@@ -48,7 +52,7 @@ menubar.add_cascade(label='About', menu=about)
 if (config.gameURL != ''):
     about.add_command(label='About ' + config.gameTitle, command=lambda: webbrowser.open(config.gameURL))
 else:
-    about.add_command(label='About ' + config.gameTitle, command=lambda: webbrowser.open(config.gameURL), state='disabled')
+    about.add_command(label='About ' + config.gameTitle, state='disabled')
 about.add_command(label='About Prelude', command=lambda: webbrowser.open('https://gitlab.com/ariastudios/prelude'))
 window.config(menu=menubar)
 

@@ -7,7 +7,7 @@ from tkinter import *
 from tkinter import messagebox, ttk
 import os, requests, shutil, sys, threading, urllib, zipfile
 
-import config, gui, authorization
+import config, gui, privateBuildChannel
 
 # checks if required variables are defined, if not display an error message and close
 if (config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''):
@@ -57,21 +57,24 @@ def getRemoteVersion():
 # (if there are any, otherwise it disables the menu action [again])
 def displayMessages():
     if (localVersion == 0 and config.installMessage != ''):
-        messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', config.installMessage, parent=gui.window)
+        messagebox.showinfo('Welcome to ' + config.gameTitle + '!', config.installMessage, parent=gui.window)
 
     if (localVersion != 0 and config.messageFile != ''):
         try:
-            messageContents = urllib.request.urlopen(config.urlPath + '/' + config.messageFile).read()
+            messageContent = urllib.request.urlopen(config.urlPath + '/' + config.messageFile).read()
         except urllib.error.URLError as e:
             if hasattr(e, 'reason'):
                 messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.messageFile + ' information file.\n\n' + str(e.reason), parent=gui.window)
             elif hasattr(e, 'code'):
                 messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n\n' + str(e.code), parent=gui.window)
 
-        messageContents = messageContents.decode('UTF-8')
+        messageContent = messageContent.decode('UTF-8')
 
-        if (messageContents != ''):
-            messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContents, parent=gui.window)
+        if (messageContent != ''):
+            messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContent, parent=gui.window)
+
+    if (os.path.exists(config.tokenFile) == True):
+        privateBuildChannel.messages()
 
     if (config.messageFile != ''):
         gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages, state=NORMAL)
@@ -209,9 +212,9 @@ if (config.authMethod == 'none'):
     gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
 elif (config.authMethod == 'password'):
     if (os.path.exists(config.tokenFile) == True):
-        authorization.checkStatus()
+        privateBuildChannel.checkStatus()
     else:
-        gui.privateBuildChannel.entryconfigure('Authorization', command=lambda: threading.Thread(target=authorization.createAuthWindow).start(), state=NORMAL)
+        gui.privateBuildChannel.entryconfigure('Authorization', command=lambda: threading.Thread(target=privateBuildChannel.createAuthWindow).start(), state=NORMAL)
 else:
     gui.menubar.entryconfigure(config.privateBuildChannelName + ' Build Channel', state='disabled')
 
