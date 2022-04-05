@@ -9,8 +9,21 @@ import os, urllib
 import config, gui
 
 # os.mkdir(config.privateBuildChannelName)
+def messages():
+    if (config.privateMessageFile != ''):
+        try:
+            messageContent = urllib.request.urlopen(config.urlPath + '/' + config.privateMessageFile).read()
+        except urllib.error.URLError as e:
+            if hasattr(e, 'reason'):
+                messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.privateMessageFile + ' information file.\n\n' + str(e.reason), parent=gui.window)
+            elif hasattr(e, 'code'):
+                messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n\n' + str(e.code), parent=gui.window)
 
-# insert call towards start of application
+        messageContent = messageContent.decode('UTF-8')
+
+        if (messageContent != ''):
+            messagebox.showinfo(config.privateBuildChannelName + ' Build Channel Message', messageContent, parent=gui.window)
+
 def checkStatus():
     try:
         remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
@@ -27,6 +40,8 @@ def checkStatus():
 
         if ('reset' in pwdList):
             os.remove(config.tokenFile)
+            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=authWindow)
+            messages()
 
     try:
         file = open(config.tokenFile, 'rb')
@@ -44,6 +59,7 @@ def checkStatus():
 
         if (os.getlogin() not in localToken):
             os.remove(config.tokenFile)
+            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=authWindow)
 
         if (os.path.exists(config.tokenFile) == True):
             gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
@@ -78,6 +94,7 @@ def authorization(authWindow, nameEntry, pwdEntry):
             gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
 
             messagebox.showinfo(config.privateBuildChannelName + ' Authorization', 'Authorization Successful: your computer has been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nPlease use the menu options to install & update the build as necessary.', parent=authWindow)
+            messages()
             authWindow.destroy()
         else:
             messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization Failed: your computer has not been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nIf you believe this is in error, contact the ' + config.gameTitle + ' developers.', parent=authWindow)
