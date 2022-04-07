@@ -12,8 +12,11 @@ gameURL = 'https://reliccastle.com'
 # OPTIONAL: change log URL
 changelogURL = ''
 
+# OPTIONAL: local path to window icon
+iconPath = ''
+
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -38,7 +41,7 @@ privateBuildChannelName = 'Private'
 privateMessageFile = 'privateMessage'
 
 # OPTIONAL: authorization method for private build channel
-authMethod = ''
+authMethod = 'password'
 
 # OPTIONAL: remote password file
 passwordFile = 'passwords'
@@ -48,3 +51,6 @@ tokenFile = 'authtoken'
 
 # OPTIONAL: Fernet key for authtoken encryption
 cryptKey = ''
+
+# OPTIONAL: Discord webhook URL for authorization related notifications
+discordWebhookURL = ''

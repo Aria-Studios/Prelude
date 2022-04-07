@@ -21,6 +21,8 @@ def updatePBar(updateType):
 # sets up the GUI
 window = Tk()
 window.title(config.gameTitle + ' Updater')
+if (config.iconPath != ''):
+    window.iconbitmap(config.iconPath)
 window.option_add('*tearOff', False)
 window.columnconfigure(0, weight=1)
 window.rowconfigure(0, weight=1)
@@ -69,7 +71,7 @@ ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=2, columnspan=2
 
 # displays the progressbar, progress label, and action buttons
 updateFrame = ttk.Frame(mainFrame, width=300, height=50).grid(column=0, row=3, columnspan=2, rowspan=2, sticky=N)
-progressBar = ttk.Progressbar(updateFrame, orient='horizontal', length=200, mode='determinate')
+progressBar = ttk.Progressbar(updateFrame, orient='horizontal', length=200, mode='indeterminate')
 progressBar.grid(column=0, row=3, columnspan=2, rowspan=1, sticky=N, pady=10)
 progressLabel = ttk.Label(updateFrame, text='Select an option below.')
 progressLabel.grid(column=0, row=4, columnspan=2, rowspan=1, sticky=N, pady=3)

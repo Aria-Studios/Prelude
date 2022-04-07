@@ -129,6 +129,7 @@ def updateGame():
 # handles the actual updating, based on the targetted archive and what kind of update it is
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
+    gui.progressBar.start()
     if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
@@ -160,7 +161,6 @@ def updateAction(updateTarget, updateType):
     updateFile.write(updateZip.content)
     updateFile.close()
 
-    gui.updatePBar(updateType)
     if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
@@ -185,7 +185,6 @@ def updateAction(updateTarget, updateType):
 
     updateFile.close()
 
-    gui.updatePBar(updateType)
     if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
@@ -197,7 +196,7 @@ def updateAction(updateTarget, updateType):
         messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
 
-    gui.updatePBar(updateType)
+    gui.progressBar.stop()
 
 # call relevant functions to get version information,
 # set the appropriate labels to the returned information

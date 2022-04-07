@@ -4,6 +4,7 @@
 from tkinter import *
 from tkinter import messagebox, ttk
 from cryptography.fernet import Fernet
+from discord_webhook import DiscordWebhook, DiscordEmbed
 import os, urllib
 
 import config, gui
@@ -24,6 +25,29 @@ def messages():
         if (messageContent != ''):
             messagebox.showinfo(config.privateBuildChannelName + ' Build Channel Message', messageContent, parent=gui.window)
 
+def discordNotification(name, pwd, var):
+    webhook = DiscordWebhook(url=config.discordWebhookURL)
+
+    if (var == 'Success' or var == 'Failure'):
+        embed = DiscordEmbed(title='Updater Notification', description='User has attempted to authorize their computer for:')
+        embed.add_embed_field(name='Game Title:', value=config.gameTitle)
+        embed.add_embed_field(name='Channel:', value=config.privateBuildChannelName)
+        embed.add_embed_field(name='User:', value=name, inline=False)
+        embed.add_embed_field(name='Password:', value=pwd, inline=False)
+        embed.add_embed_field(name='Result:', value=var, inline=False)
+        embed.set_footer(text='Powered by Prelude v3')
+    else:
+        embed = DiscordEmbed(title='Updater Notification', description='User has attempted to use a ' + config.tokenFile + ' that does not match their computer.')
+        embed.add_embed_field(name='Game Title:', value=config.gameTitle)
+        embed.add_embed_field(name='Channel:', value=config.privateBuildChannelName)
+        embed.add_embed_field(name='User:', value=name, inline=False)
+        embed.add_embed_field(name='Password:', value=pwd, inline=False)
+        embed.add_embed_field(name='Computer Login:', value=var, inline=False)
+        embed.set_footer(text='Powered by Prelude v3')
+
+    webhook.add_embed(embed)
+    webhook.execute()
+    
 def checkStatus():
     try:
         remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
@@ -40,7 +64,7 @@ def checkStatus():
 
         if ('reset' in pwdList):
             os.remove(config.tokenFile)
-            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=authWindow)
+            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=gui.window)
             messages()
 
     try:
@@ -59,7 +83,11 @@ def checkStatus():
 
         if (os.getlogin() not in localToken):
             os.remove(config.tokenFile)
-            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=authWindow)
+
+            if (config.discordWebhookURL != ''):
+                discordNotification(localToken[0], localToken[1], os.getlogin())
+
+            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=gui.window)
 
         if (os.path.exists(config.tokenFile) == True):
             gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
@@ -83,11 +111,14 @@ def authorization(authWindow, nameEntry, pwdEntry):
 
         if (pwdEntry in pwdList):
             key = Fernet(config.cryptKey)
-            encToken = key.encrypt(bytes(nameEntry + '\n' + pwdEntry + '\n' + os.getlogin(),'UTF-8'))
+            encToken = key.encrypt(bytes(nameEntry + '\n' + pwdEntry + '\n' + 'asdfklasd', 'UTF-8'))
 
             file = open(config.tokenFile, 'wb')
             file.write(encToken)
             file.close()
+
+            if (config.discordWebhookURL != ''):
+                discordNotification(nameEntry, pwdEntry, 'Success')
 
             gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
             gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
@@ -97,6 +128,9 @@ def authorization(authWindow, nameEntry, pwdEntry):
             messages()
             authWindow.destroy()
         else:
+            if (config.discordWebhookURL != ''):
+                discordNotification(nameEntry, pwdEntry, 'Failure')
+
             messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization Failed: your computer has not been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nIf you believe this is in error, contact the ' + config.gameTitle + ' developers.', parent=authWindow)
 
 #Please enter your information below in order to authorize your computer for the ' + config.privateBuildChannelName + ' build channel release. If successfully authorized, you may install and update the new build via the menubar. Your information may also be sent to the developer.'
