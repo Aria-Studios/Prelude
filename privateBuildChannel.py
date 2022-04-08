@@ -47,7 +47,7 @@ def discordNotification(name, pwd, var):
 
     webhook.add_embed(embed)
     webhook.execute()
-    
+
 def checkStatus():
     try:
         remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
@@ -111,7 +111,7 @@ def authorization(authWindow, nameEntry, pwdEntry):
 
         if (pwdEntry in pwdList):
             key = Fernet(config.cryptKey)
-            encToken = key.encrypt(bytes(nameEntry + '\n' + pwdEntry + '\n' + 'asdfklasd', 'UTF-8'))
+            encToken = key.encrypt(bytes(nameEntry + '\n' + pwdEntry + '\n' + os.getlogin(), 'UTF-8'))
 
             file = open(config.tokenFile, 'wb')
             file.write(encToken)

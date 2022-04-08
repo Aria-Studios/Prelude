@@ -10,7 +10,7 @@ import os, requests, shutil, sys, threading, urllib, zipfile
 import config, gui, privateBuildChannel
 
 # checks if required variables are defined, if not display an error message and close
-if (config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''):
+if (config.gameTitle == '' or config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''):
     messagebox.showerror('Prelude Error', 'Error: data is missing from the program configuration.\n\nContact the ' + config.gameTitle + ' developers.')
     gui.close()
 
@@ -22,7 +22,7 @@ def getLocalVersion():
         file = open(config.versionFile, 'r')
         localVersion = float(file.read())
     except FileNotFoundError:
-        messagebox.showerror('Prelude Error', 'Local ' + config.versionFile + ' information file cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        messagebox.showerror('Prelude Error', 'Local ' + config.versionFile + ' information file cannot be found. Please make sure you are running the program in the same directory as the ' + config.versionFile + ' file (most often, your game directory).\n\nIf you are running the program in the correct location and the error persists, please contact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
     except ValueError:
         messagebox.showerror('Prelude Error', 'Local ' + config.versionFile + ' information file contains invalid contents.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
@@ -87,9 +87,9 @@ def updateGame():
     else:
         gui.actions.entryconfigure('Update Game', state=DISABLED)
     gui.actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+    gui.actions.entryconfigure('Download Latest Core', state=DISABLED)
+    gui.actions.entryconfigure('Download Latest Patch', state=DISABLED)
     gui.updateButton['state'] = 'disabled'
-
-    messagebox.showwarning('Prelude Warning', 'This program is still in development and will not reflect the status of your download. Please give it time to work. You can check your task manager to see if it is still processing the download (check the RAM usage) if necessary.', parent=gui.window)
 
     # first case: if local core release is less than remote core release AND
     # if the remote core release is not equal to the remote patch release,
@@ -125,22 +125,20 @@ def updateGame():
         gui.progressLabel['text'] = 'Error: version information out of sync.'
         messagebox.showerror('Prelude Error', 'Error: the local version information file is out of sync with the remote version information file.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
     gui.actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
+    gui.actions.entryconfigure('Download Latest Core', state=NORMAL)
+    gui.actions.entryconfigure('Download Latest Patch', state=NORMAL)
 
 # handles the actual updating, based on the targetted archive and what kind of update it is
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
-    gui.progressBar.start()
     if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
-    if (shutil.disk_usage(os.getcwd()).free < int(requests.head(config.urlPath + '/' + updateTarget).headers['Content-length'])):
-        messagebox.showwarning('Prelude Warning', 'Warning: your hard drive may not have enough space for this download.', parent=gui.window)
-
     try:
-        updateZip = requests.get(config.urlPath + '/' + updateTarget, timeout=30)
-        updateZip.raise_for_status()
+        download = requests.get(config.urlPath + '/' + updateTarget, stream=True, timeout=30)
+        download.raise_for_status()
     except requests.exceptions.HTTPError as error:
         messagebox.showerror('Prelude Error', 'HTTP error: #' + str(error) + '.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
@@ -157,8 +155,28 @@ def updateAction(updateTarget, updateType):
         messagebox.showerror('Prelude Error', 'Error: ' + str(error) + '.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
 
+    totalLength = int(download.headers.get('content-length'))
     updateFile = open(updateTarget, 'wb')
-    updateFile.write(updateZip.content)
+
+    if totalLength is None:
+        updateFile.write(download.content)
+        if (updateType == 'both'):
+            gui.progressBar['value'] += 40
+        else:
+            gui.progressBar['value'] += 90
+    else:
+        if (updateType == 'both'):
+            increment = int(totalLength / 40)
+        else:
+            increment = int(totalLength / 90)
+
+        if (totalLength > shutil.disk_usage(os.getcwd()).free):
+            messagebox.showwarning('Prelude Warning', 'Warning: your hard drive may not have enough space for this download.', parent=gui.window)
+
+        for data in download.iter_content(chunk_size=increment):
+            updateFile.write(data)
+            gui.progressBar['value'] += 1
+
     updateFile.close()
 
     if (updateTarget == config.coreArchive):
@@ -184,6 +202,7 @@ def updateAction(updateTarget, updateType):
             gui.close()
 
     updateFile.close()
+    gui.progressBar['value'] += 5
 
     if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
@@ -196,7 +215,7 @@ def updateAction(updateTarget, updateType):
         messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
 
-    gui.progressBar.stop()
+    gui.progressBar['value'] += 5
 
 # call relevant functions to get version information,
 # set the appropriate labels to the returned information
@@ -214,8 +233,6 @@ elif (config.authMethod == 'password'):
         privateBuildChannel.checkStatus()
     else:
         gui.privateBuildChannel.entryconfigure('Authorization', command=lambda: threading.Thread(target=privateBuildChannel.createAuthWindow).start(), state=NORMAL)
-else:
-    gui.menubar.entryconfigure(config.privateBuildChannelName + ' Build Channel', state='disabled')
 
 # if the local version is out of date, enable the update options
 if (localVersion == 0):

@@ -9,15 +9,6 @@ def close():
     window.quit()
     sys.exit()
 
-# updates the progress bar based on the passed variable
-def updatePBar(updateType):
-    if (updateType == 'both'):
-        progressBar['value'] += 17
-    elif (updateType == 'core'):
-        progressBar['value'] += 34
-    elif (updateType == 'patch'):
-        progressBar['value'] += 34
-
 # sets up the GUI
 window = Tk()
 window.title(config.gameTitle + ' Updater')
@@ -43,12 +34,13 @@ actions.add_command(label='Download Latest Core', command=lambda: webbrowser.ope
 actions.add_command(label='Download Latest Patch', command=lambda: webbrowser.open(config.urlPath + '/' + config.patchArchive))
 actions.add_separator()
 actions.add_command(label='Close', command=close)
-privateBuildChannel = Menu(menubar)
-menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel)
-privateBuildChannel.add_command(label='Authorization', command=None, state='disabled')
-privateBuildChannel.add_separator()
-privateBuildChannel.add_command(label='Install ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
-privateBuildChannel.add_command(label='Update ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
+if (config.authMethod != ''):
+    privateBuildChannel = Menu(menubar)
+    menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel)
+    privateBuildChannel.add_command(label='Authorization', command=None, state='disabled')
+    privateBuildChannel.add_separator()
+    privateBuildChannel.add_command(label='Install ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
+    privateBuildChannel.add_command(label='Update ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
 if (config.gameURL != ''):
@@ -71,7 +63,7 @@ ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=2, columnspan=2
 
 # displays the progressbar, progress label, and action buttons
 updateFrame = ttk.Frame(mainFrame, width=300, height=50).grid(column=0, row=3, columnspan=2, rowspan=2, sticky=N)
-progressBar = ttk.Progressbar(updateFrame, orient='horizontal', length=200, mode='indeterminate')
+progressBar = ttk.Progressbar(updateFrame, orient='horizontal', length=200, mode='determinate')
 progressBar.grid(column=0, row=3, columnspan=2, rowspan=1, sticky=N, pady=10)
 progressLabel = ttk.Label(updateFrame, text='Select an option below.')
 progressLabel.grid(column=0, row=4, columnspan=2, rowspan=1, sticky=N, pady=3)
