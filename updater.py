@@ -10,7 +10,9 @@ import os, requests, shutil, sys, threading, urllib, zipfile
 import config, gui, privateBuildChannel
 
 # checks if required variables are defined, if not display an error message and close
-if (config.gameTitle == '' or config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''):
+if (config.gameTitle == '' or config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''
+    or (config.authMethod != '' and (config.privateBuildChannelName == '' or config.privateCoreArchive == '' or config.privatePatchArchive == ''))
+    or (config.authMethod == 'password' and config.encKey == '')):
     messagebox.showerror('Prelude Error', 'Error: data is missing from the program configuration.\n\nContact the ' + config.gameTitle + ' developers.')
     gui.close()
 
@@ -224,15 +226,7 @@ remoteVersion = getRemoteVersion()
 gui.localVersionLabel['text'] = localVersion
 gui.remoteVersionLabel['text'] = remoteVersion
 displayMessages()
-
-if (config.authMethod == 'none'):
-    gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
-    gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
-elif (config.authMethod == 'password'):
-    if (os.path.exists(config.tokenFile) == True):
-        privateBuildChannel.checkStatus()
-    else:
-        gui.privateBuildChannel.entryconfigure('Authorization', command=lambda: threading.Thread(target=privateBuildChannel.createAuthWindow).start(), state=NORMAL)
+privateBuildChannel.checkStatus()
 
 # if the local version is out of date, enable the update options
 if (localVersion == 0):

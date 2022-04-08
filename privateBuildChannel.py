@@ -49,50 +49,57 @@ def discordNotification(name, pwd, var):
     webhook.execute()
 
 def checkStatus():
-    try:
-        remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
-    except urllib.error.URLError as e:
-        if hasattr(e, 'reason'):
-            messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.passwordFile + ' information file.\n\n' + str(e.reason), parent=gui.window)
-            gui.close()
-        elif hasattr(e, 'code'):
-            messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n\n' + str(e.code), parent=gui.window)
-            gui.close()
-    else:
-        remoteRaw = remoteRaw.decode('UTF-8')
-        pwdList = remoteRaw.split('\r\n')
-
-        if ('reset' in pwdList):
-            os.remove(config.tokenFile)
-            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=gui.window)
-            messages()
-
-    try:
-        file = open(config.tokenFile, 'rb')
-    except FileNotFoundError:
-        messagebox.showerror('Prelude Error', 'Local ' + config.tokenFile + ' file cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
-        gui.close()
-    else:
-        key = Fernet(config.cryptKey)
-        localToken = file.read()
-        file.close()
-
-        localToken = key.decrypt(localToken)
-        localToken = localToken.decode('UTF-8')
-        localToken = localToken.split('\n')
-
-        if (os.getlogin() not in localToken):
-            os.remove(config.tokenFile)
-
-            if (config.discordWebhookURL != ''):
-                discordNotification(localToken[0], localToken[1], os.getlogin())
-
-            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=gui.window)
-
+    if (config.authMethod == 'none'):
+        gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+        gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+    elif (config.authMethod == 'password'):
         if (os.path.exists(config.tokenFile) == True):
-            gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
-            gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
-            gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+            try:
+                remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
+            except urllib.error.URLError as e:
+                if hasattr(e, 'reason'):
+                    messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.passwordFile + ' information file.\n\n' + str(e.reason), parent=gui.window)
+                    gui.close()
+                elif hasattr(e, 'code'):
+                    messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n\n' + str(e.code), parent=gui.window)
+                    gui.close()
+            else:
+                remoteRaw = remoteRaw.decode('UTF-8')
+                pwdList = remoteRaw.split('\r\n')
+
+                if ('reset' in pwdList):
+                    os.remove(config.tokenFile)
+                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=gui.window)
+                    messages()
+
+            try:
+                file = open(config.tokenFile, 'rb')
+            except FileNotFoundError:
+                messagebox.showerror('Prelude Error', 'Local ' + config.tokenFile + ' file cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+                gui.close()
+            else:
+                key = Fernet(config.encKey)
+                localToken = file.read()
+                file.close()
+
+                localToken = key.decrypt(localToken)
+                localToken = localToken.decode('UTF-8')
+                localToken = localToken.split('\n')
+
+                if (os.getlogin() not in localToken):
+                    os.remove(config.tokenFile)
+
+                    if (config.discordWebhookURL != ''):
+                        discordNotification(localToken[0], localToken[1], os.getlogin())
+
+                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=gui.window)
+
+            if (os.path.exists(config.tokenFile) == True):
+                gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
+                gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+                gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+        else:
+            gui.privateBuildChannel.entryconfigure('Authorization', command=createAuthWindow, state=NORMAL)
 
 def authorization(authWindow, nameEntry, pwdEntry):
     try:
@@ -110,7 +117,7 @@ def authorization(authWindow, nameEntry, pwdEntry):
         pwdList.pop()
 
         if (pwdEntry in pwdList):
-            key = Fernet(config.cryptKey)
+            key = Fernet(config.encKey)
             encToken = key.encrypt(bytes(nameEntry + '\n' + pwdEntry + '\n' + os.getlogin(), 'UTF-8'))
 
             file = open(config.tokenFile, 'wb')

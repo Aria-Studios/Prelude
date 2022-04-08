@@ -44,8 +44,14 @@ messageFile = 'message'
 # OPTIONAL: authorization method for private build channel
 authMethod = 'password'
 
-# OPTIONAL: name of private build channel
+# REQUIRED (if authMethod is defined): name of private build channel
 privateBuildChannelName = 'Private'
+
+# REQUIRED (if authMethod is defined): core file name, MUST BE ZIP format
+privateCoreArchive = 'private-core.zip'
+
+# REQUIRED (if authMethod is defined): patch file name, MUST BE ZIP format
+privatePatchArchive = 'private-patch.zip'
 
 # OPTIONAL: build channel messages
 privateMessageFile = 'privateMessage'
@@ -57,7 +63,7 @@ passwordFile = 'passwords'
 tokenFile = 'authtoken'
 
 # OPTIONAL: Fernet key for authtoken encryption
-cryptKey = ''
+encKey = 'PTdCfI4X8DVK5H9dIa91BG168ha1b-Yu4mOPyUjIoUg='
 
 # OPTIONAL: Discord webhook URL for authorization related notifications
 discordWebhookURL = ''
