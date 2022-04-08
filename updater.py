@@ -79,19 +79,16 @@ def displayMessages():
         privateBuildChannel.messages()
 
     if (config.messageFile != ''):
-        gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages, state=NORMAL)
+        gui.actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
 
 # logic tree to determine what gets updated
 def updateGame():
     # disables the update menu item & button, as well as the message menu item
+    gui.disable()
     if (localVersion == 0):
         gui.actions.entryconfigure('Install Game', state=DISABLED)
     else:
         gui.actions.entryconfigure('Update Game', state=DISABLED)
-    gui.actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
-    gui.actions.entryconfigure('Download Latest Core', state=DISABLED)
-    gui.actions.entryconfigure('Download Latest Patch', state=DISABLED)
-    gui.updateButton['state'] = 'disabled'
 
     # first case: if local core release is less than remote core release AND
     # if the remote core release is not equal to the remote patch release,
@@ -126,14 +123,46 @@ def updateGame():
     else:
         gui.progressLabel['text'] = 'Error: version information out of sync.'
         messagebox.showerror('Prelude Error', 'Error: the local version information file is out of sync with the remote version information file.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
-    gui.actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
-    gui.actions.entryconfigure('Download Latest Core', state=NORMAL)
-    gui.actions.entryconfigure('Download Latest Patch', state=NORMAL)
+    gui.enable()
+    gui.updateButton['state'] = 'disabled'
+
+def privateCore():
+    gui.disable()
+    if (localVersion == 0):
+        gui.actions.entryconfigure('Install Game', state=DISABLED)
+    else:
+        gui.actions.entryconfigure('Update Game', state=DISABLED)
+    gui.progressBar['value'] = 0
+
+    if (os.path.exists(config.privateBuildChannelName) == True):
+        shutil.rmtree(config.privateBuildChannelName)
+    os.mkdir(config.privateBuildChannelName)
+    updateAction(config.privateCoreArchive, 'core')
+
+    gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privateCoreArchive + ' is now installed!'
+    gui.enable()
+
+def privatePatch():
+    if (os.path.exists(config.privateBuildChannelName) == True):
+        gui.disable()
+        if (localVersion == 0):
+            gui.actions.entryconfigure('Install Game', state=DISABLED)
+        else:
+            gui.actions.entryconfigure('Update Game', state=DISABLED)
+        gui.progressBar['value'] = 0
+
+        updateAction(config.privatePatchArchive, 'patch')
+
+        gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privatePatchArchive + ' is now installed!'
+        gui.enable()
+    else:
+        messagebox.showerror('Prelude Error', 'Error: please install the ' + config.privateBuildChannelName + ' build core first.', parent=gui.window)
 
 # handles the actual updating, based on the targetted archive and what kind of update it is
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
-    if (updateTarget == config.coreArchive):
+
+    if (updateType == 'core'):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
@@ -160,6 +189,9 @@ def updateAction(updateTarget, updateType):
     totalLength = int(download.headers.get('content-length'))
     updateFile = open(updateTarget, 'wb')
 
+    if (totalLength > shutil.disk_usage(os.getcwd()).free):
+        messagebox.showwarning('Prelude Warning', 'Warning: your hard drive may not have enough space for this download.', parent=gui.window)
+
     if totalLength is None:
         updateFile.write(download.content)
         if (updateType == 'both'):
@@ -172,23 +204,24 @@ def updateAction(updateTarget, updateType):
         else:
             increment = int(totalLength / 90)
 
-        if (totalLength > shutil.disk_usage(os.getcwd()).free):
-            messagebox.showwarning('Prelude Warning', 'Warning: your hard drive may not have enough space for this download.', parent=gui.window)
-
         for data in download.iter_content(chunk_size=increment):
             updateFile.write(data)
             gui.progressBar['value'] += 1
 
     updateFile.close()
 
-    if (updateTarget == config.coreArchive):
+    if (updateType == 'core'):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
 
     try:
         updateFile = zipfile.ZipFile(updateTarget, 'r')
-        updateFile.extractall()
+
+        if (updateTarget == config.coreArchive or updateTarget == config.patchArchive):
+            updateFile.extractall()
+        else:
+            updateFile.extractall(path=config.privateBuildChannelName)
     except FileNotFoundError:
         messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
@@ -206,7 +239,7 @@ def updateAction(updateTarget, updateType):
     updateFile.close()
     gui.progressBar['value'] += 5
 
-    if (updateTarget == config.coreArchive):
+    if (updateType == 'core'):
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
@@ -219,6 +252,14 @@ def updateAction(updateTarget, updateType):
 
     gui.progressBar['value'] += 5
 
+gui.actions.entryconfigure('Update Game', command=lambda: threading.Thread(target=updateGame).start())
+gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages)
+gui.updateButton['command'] = lambda: threading.Thread(target=updateGame).start()
+if (config.authMethod != ''):
+    gui.privateBuildChannel.entryconfigure('Authorization', command=privateBuildChannel.createAuthWindow)
+    gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', command=lambda: threading.Thread(target=privateCore).start())
+    gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', command=lambda: threading.Thread(target=privatePatch).start())
+
 # call relevant functions to get version information,
 # set the appropriate labels to the returned information
 localVersion = getLocalVersion()
@@ -230,13 +271,11 @@ privateBuildChannel.checkStatus()
 
 # if the local version is out of date, enable the update options
 if (localVersion == 0):
-    gui.actions.entryconfigure('Update Game', label='Install Game', command=lambda: threading.Thread(target=updateGame).start(), state=NORMAL)
+    gui.actions.entryconfigure('Update Game', label='Install Game', state=NORMAL)
     gui.updateButton['text'] = 'Install Game'
-    gui.updateButton['command'] = lambda: threading.Thread(target=updateGame).start()
     gui.updateButton['state'] = NORMAL
 elif (localVersion < remoteVersion):
-    gui.actions.entryconfigure('Update Game', command=lambda: threading.Thread(target=updateGame).start(), state=NORMAL)
-    gui.updateButton['command'] = lambda: threading.Thread(target=updateGame).start()
+    gui.actions.entryconfigure('Update Game', state=NORMAL)
     gui.updateButton['state'] = NORMAL
 
 # creates & displays the GUI

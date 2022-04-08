@@ -6,7 +6,7 @@
 gameTitle = 'Game Title'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -25,10 +25,10 @@ patchArchive = 'patch.zip'
 gameURL = 'https://reliccastle.com'
 
 # OPTIONAL: change log URL
-changelogURL = ''
+changelogURL = 'https://domain.com/changelog'
 
-# OPTIONAL: local path to window icon
-iconPath = ''
+# OPTIONAL: local path to window icon, MUST BE .ICO FORMAT
+iconPath = 'icon.ico'
 
 # OPTIONAL: message if local version is 0
 installMessage = 'This is a test.'
@@ -42,7 +42,7 @@ messageFile = 'message'
 # feature configuration options
 
 # OPTIONAL: authorization method for private build channel
-authMethod = 'password'
+authMethod = ''
 
 # REQUIRED (if authMethod is defined): name of private build channel
 privateBuildChannelName = 'Private'
@@ -63,7 +63,7 @@ passwordFile = 'passwords'
 tokenFile = 'authtoken'
 
 # OPTIONAL: Fernet key for authtoken encryption
-encKey = 'PTdCfI4X8DVK5H9dIa91BG168ha1b-Yu4mOPyUjIoUg='
+encKey = ''
 
 # OPTIONAL: Discord webhook URL for authorization related notifications
 discordWebhookURL = ''

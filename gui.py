@@ -9,6 +9,22 @@ def close():
     window.quit()
     sys.exit()
 
+def enable():
+    actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
+    updateButton['state'] = NORMAL
+    if (config.authMethod != ''):
+        privateBuildChannel.entryconfigure('Authorization', state=DISABLED)
+        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+
+def disable():
+    actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+    updateButton['state'] = 'disabled'
+    if (config.authMethod != ''):
+        privateBuildChannel.entryconfigure('Authorization', state=DISABLED)
+        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=DISABLED)
+        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=DISABLED)
+
 # sets up the GUI
 window = Tk()
 window.title(config.gameTitle + ' Updater')
@@ -39,8 +55,8 @@ if (config.authMethod != ''):
     menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel)
     privateBuildChannel.add_command(label='Authorization', command=None, state='disabled')
     privateBuildChannel.add_separator()
-    privateBuildChannel.add_command(label='Install ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
-    privateBuildChannel.add_command(label='Update ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
+    privateBuildChannel.add_command(label='Install Latest ' + config.privateBuildChannelName + ' Build Core', command=None, state='disabled')
+    privateBuildChannel.add_command(label='Install Latest ' + config.privateBuildChannelName + ' Build Patch', command=None, state='disabled')
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
 if (config.gameURL != ''):
@@ -74,4 +90,4 @@ closeButton = ttk.Button(updateFrame, text='Close', command=close).grid(column=0
 # displays Prelude credits
 ttk.Separator(mainFrame, orient='horizontal').grid(column=0, row=7, columnspan=2, rowspan=1)
 creditFrame = ttk.Frame(mainFrame, width=300, height=25).grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S)
-ttk.Label(creditFrame, text='Powered by Prelude v2.5').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)
+ttk.Label(creditFrame, text='Powered by Prelude v3').grid(column=0, row=8, columnspan=2, rowspan=1, sticky=S, pady=10)

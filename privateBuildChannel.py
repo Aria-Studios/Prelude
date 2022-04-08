@@ -1,5 +1,4 @@
 # TODO: fix styling in new window
-# TODO: download/install related code
 
 from tkinter import *
 from tkinter import messagebox, ttk
@@ -9,7 +8,6 @@ import os, urllib
 
 import config, gui
 
-# os.mkdir(config.privateBuildChannelName)
 def messages():
     if (config.privateMessageFile != ''):
         try:
@@ -28,30 +26,26 @@ def messages():
 def discordNotification(name, pwd, var):
     webhook = DiscordWebhook(url=config.discordWebhookURL)
 
+    embed = DiscordEmbed(title='Updater Notification')
+    embed.add_embed_field(name='Game Title:', value=config.gameTitle)
+    embed.add_embed_field(name='Channel:', value=config.privateBuildChannelName)
+    embed.add_embed_field(name='User:', value=name, inline=False)
+    embed.add_embed_field(name='Password:', value=pwd, inline=False)
     if (var == 'Success' or var == 'Failure'):
-        embed = DiscordEmbed(title='Updater Notification', description='User has attempted to authorize their computer for:')
-        embed.add_embed_field(name='Game Title:', value=config.gameTitle)
-        embed.add_embed_field(name='Channel:', value=config.privateBuildChannelName)
-        embed.add_embed_field(name='User:', value=name, inline=False)
-        embed.add_embed_field(name='Password:', value=pwd, inline=False)
+        embed.set_description('User has attempted to authorize their computer for:')
         embed.add_embed_field(name='Result:', value=var, inline=False)
-        embed.set_footer(text='Powered by Prelude v3')
     else:
-        embed = DiscordEmbed(title='Updater Notification', description='User has attempted to use a ' + config.tokenFile + ' that does not match their computer.')
-        embed.add_embed_field(name='Game Title:', value=config.gameTitle)
-        embed.add_embed_field(name='Channel:', value=config.privateBuildChannelName)
-        embed.add_embed_field(name='User:', value=name, inline=False)
-        embed.add_embed_field(name='Password:', value=pwd, inline=False)
+        embed.set_description('User has attempted to use a ' + config.tokenFile + ' that does not match their computer.')
         embed.add_embed_field(name='Computer Login:', value=var, inline=False)
-        embed.set_footer(text='Powered by Prelude v3')
+    embed.set_footer(text='Powered by Prelude v3')
 
     webhook.add_embed(embed)
     webhook.execute()
 
 def checkStatus():
     if (config.authMethod == 'none'):
-        gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
-        gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+        gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+        gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
     elif (config.authMethod == 'password'):
         if (os.path.exists(config.tokenFile) == True):
             try:
@@ -96,10 +90,10 @@ def checkStatus():
 
             if (os.path.exists(config.tokenFile) == True):
                 gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
-                gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
-                gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+                gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+                gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
         else:
-            gui.privateBuildChannel.entryconfigure('Authorization', command=createAuthWindow, state=NORMAL)
+            gui.privateBuildChannel.entryconfigure('Authorization', state=NORMAL)
 
 def authorization(authWindow, nameEntry, pwdEntry):
     try:
@@ -128,8 +122,8 @@ def authorization(authWindow, nameEntry, pwdEntry):
                 discordNotification(nameEntry, pwdEntry, 'Success')
 
             gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
-            gui.privateBuildChannel.entryconfigure('Install ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
-            gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=None, state=NORMAL)
+            gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+            gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
 
             messagebox.showinfo(config.privateBuildChannelName + ' Authorization', 'Authorization Successful: your computer has been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nPlease use the menu options to install & update the build as necessary.', parent=authWindow)
             messages()
@@ -140,18 +134,16 @@ def authorization(authWindow, nameEntry, pwdEntry):
 
             messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization Failed: your computer has not been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nIf you believe this is in error, contact the ' + config.gameTitle + ' developers.', parent=authWindow)
 
-#Please enter your information below in order to authorize your computer for the ' + config.privateBuildChannelName + ' build channel release. If successfully authorized, you may install and update the new build via the menubar. Your information may also be sent to the developer.'
 def createAuthWindow():
     authWindow = Toplevel(gui.window)
     authWindow.title(config.privateBuildChannelName + ' Build Channel Authorization')
-    authWindow.geometry('300x300')
+    authWindow.geometry('300x250')
 
-    #authFrame = ttk.Frame(authWindow).grid(column=0, row=0)
-    #expFrame = ttk.Frame(authFrame, width=300, height=50).grid(column=0, row=0, columnspan=2, rowspan=2, sticky=N)
-    ttk.Label(authWindow, text='This is a placeholder.').grid(column=0, row=0, columnspan=2, rowspan=2, pady=10)
+    expFrame = ttk.Frame(authWindow, width=300, height=50).grid(column=0, row=0, columnspan=2, rowspan=2, sticky=N)
+    ttk.Label(authWindow, text='Please enter your information below in order to authorize your computer for the ' + config.privateBuildChannelName + ' build channel release. If successfully authorized, you may install and update the new build via the menubar. Your information may also be sent to the developer.', wraplength=250).grid(column=0, row=0, columnspan=2, rowspan=2, pady=10)
     ttk.Separator(authWindow, orient='horizontal').grid(column=0, row=2, columnspan=2, rowspan=1, sticky=N)
 
-    # entryFrame = ttk.Frame(authFrame, width=300, height=50).grid(column=0, row=3, columnspan=2, rowspan=2, sticky=N)
+    entryFrame = ttk.Frame(authWindow, width=300, height=50).grid(column=0, row=3, columnspan=2, rowspan=2, sticky=N)
     ttk.Label(authWindow, text='Name:').grid(column=0, row=3, columnspan=1, rowspan=1, pady=10)
     nameEntry = ttk.Entry(authWindow)
     nameEntry.grid(column=1, row=3, columnspan=1, rowspan=1, pady=10)
@@ -160,6 +152,6 @@ def createAuthWindow():
     pwdEntry.grid(column=1, row=4, columnspan=1, rowspan=1, pady=10)
     ttk.Separator(authWindow, orient='horizontal').grid(column=0, row=5, columnspan=2, rowspan=1, sticky=N)
 
-    # submitFrame = ttk.Frame(authFrame, width=300, height=50).grid(column=0, row=6, columnspan=2, rowspan=2, sticky=N)
-    authButton = ttk.Button(authWindow, text='Authorize', command=lambda: authorization(authWindow, nameEntry.get(), pwdEntry.get())).grid(column=0, row=6, columnspan=2, rowspan=1, sticky=N, pady=10)
-    cancelButton = ttk.Button(authWindow, text='Close', command=authWindow.destroy).grid(column=0, row=7, columnspan=2, rowspan=1, sticky=N, pady=10)
+    submitFrame = ttk.Frame(authWindow, width=300, height=50).grid(column=0, row=6, columnspan=2, rowspan=2, sticky=N)
+    authButton = ttk.Button(authWindow, text='Authorize', command=lambda: authorization(authWindow, nameEntry.get(), pwdEntry.get())).grid(column=0, row=6, columnspan=1, rowspan=1, sticky=N, pady=10)
+    cancelButton = ttk.Button(authWindow, text='Close', command=authWindow.destroy).grid(column=1, row=6, columnspan=1, rowspan=1, sticky=N, pady=10)
