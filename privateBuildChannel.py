@@ -9,7 +9,7 @@ import os, urllib
 import config, gui
 
 def messages():
-    if (config.privateMessageFile != ''):
+    if (config.authMethod == 'none' or (config.authMethod == 'password' and os.path.exists(config.tokenFile) == True)):
         try:
             messageContent = urllib.request.urlopen(config.urlPath + '/' + config.privateMessageFile).read()
         except urllib.error.URLError as e:

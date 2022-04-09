@@ -12,7 +12,7 @@ import config, gui, privateBuildChannel
 # checks if required variables are defined, if not display an error message and close
 if (config.gameTitle == '' or config.urlPath == '' or config.versionFile == '' or config.coreArchive == '' or config.patchArchive == ''
     or (config.authMethod != '' and (config.privateBuildChannelName == '' or config.privateCoreArchive == '' or config.privatePatchArchive == ''))
-    or (config.authMethod == 'password' and (config.passwordFile == '' or config.tokenFile == '' or config.encKey == '')):
+    or (config.authMethod == 'password' and (config.passwordFile == '' or config.tokenFile == '' or config.encKey == ''))):
     messagebox.showerror('Prelude Error', 'Error: data is missing from the program configuration.\n\nContact the ' + config.gameTitle + ' developers.')
     gui.close()
 
@@ -75,10 +75,10 @@ def displayMessages():
         if (messageContent != ''):
             messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContent, parent=gui.window)
 
-    if (os.path.exists(config.tokenFile) == True):
+    if (config.privateMessageFile != ''):
         privateBuildChannel.messages()
 
-    if (config.messageFile != ''):
+    if (config.installMessage != '' or config.messageFile != '' or config.privateMessageFile != ''):
         gui.actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
 
 # logic tree to determine what gets updated

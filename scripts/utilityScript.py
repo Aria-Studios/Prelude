@@ -38,20 +38,20 @@ def pwdGen():
 def main():
     print('\nmiscellaneous functions companion script (v1)')
     print('------------------------------')
-    print('1 - generate passwords for script.')
-    print('2 - send test invitation.')
-    print('3 - send invitations.')
-    print('4 - generate encryption key.')
+    print('1 - generate encryption key.')
+    print('2 - generate passwords for script.')
+    print('3 - send test invitation.')
+    print('4 - send invitations.')
     command = int(input('\nplease select an action above: '))
 
     if (command == 1):
-        pwdGen()
-    elif (command == 2):
-        print('send test invitation.')
-    elif (command == 3):
-        print('send invitations.')
-    elif (command == 4):
         keyGen()
+    elif (command == 2):
+        pwdGen()
+    elif (command == 3):
+        print('send test invitation.')
+    elif (command == 4):
+        print('send invitations.')
     else:
         print('please try again.')
 
