@@ -31,7 +31,7 @@ changelogURL = 'https://domain.com/changelog'
 iconPath = 'icon.ico'
 
 # OPTIONAL: message if local version is 0
-installMessage = 'This is a test.'
+installMessage = 'This message will be displayed when the local version is 0.'
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
 # message contents are controlled from the remote server, cannot be changed through update process)
@@ -62,7 +62,7 @@ passwordFile = 'passwords'
 # OPTIONAL: local authtoken file
 tokenFile = 'authtoken'
 
-# OPTIONAL: Fernet key for authtoken encryption
+# REQUIRED (if authMethod is password): Fernet key for authtoken encryption
 encKey = ''
 
 # OPTIONAL: Discord webhook URL for authorization related notifications

@@ -1,7 +1,7 @@
 ![Prelude interface.](https://media.ariastudio.dev/misc/prelude.png)
 
 # Prelude
-Prelude is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. It is written using Python 3.10.2 and was developed on Windows, has been tested extensively on Windows and Linux, but it does *not* work on MacOS at the moment. Once you've edited the variables and compiled the code, you can include the executable file in your base game download. This program can be launched in order to check for any updates that are available, then download and install those updates automatically. The program also has the functionality to display a message to users if there is something important that needs to be communicated to them. It can also be used to distribute in development copies of your game for whatever purpose, such as testing, Patreon rewards, etc.
+Prelude is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. It is written using Python 3.10.2 and was developed on Windows, has been tested extensively on Windows and Linux, but it does *not* work on MacOS at the moment. Once you've edited the configuration values and compiled the code, you can include the executable file in your base game download. This program can be launched in order to check for any updates that are available, then download and install those updates automatically. The program also has the functionality to display a message to users if there is something important that needs to be communicated to them. It can also be used to distribute in development copies of your game for whatever purpose, such as testing, Patreon rewards, etc.
 
 # Features
 * Check the game version, both locally and remotely
@@ -31,7 +31,7 @@ Prelude is a simple update utility designed for use with Pokémon fangames made 
 1. Begin including the necessary files in your game downloads.
 
 # File Setup and Structure
-This section goes over how the program operates and should help you make the most of it, while reducing any errors experienced. One caveat that should be kept in mind throughout the process as a whole is that due to Python limitations hidden files should not be used at all. It results in an error as the program will be unable to automatically extract the files and overwrite them. There is a built-in error message, but it is not intended for this purpose.
+This section goes over how the program operates and should help you make the most of it, while reducing any errors experienced. One caveat that should be kept in mind throughout the process as a whole is that due to Python limitations hidden files should not be used in your game downloads at all. It results in an error as the program will be unable to automatically extract the files and overwrite them. There is a built-in error message, but it is not intended for this purpose.
 
 ## "core" vs "patch"
 One of the first things to understand is that this program operates under the assumption that you use two different kind of updates: core and patch. Core releases are major releases which add or edit a large number of files, wherein it is easier/better to assume that you need to ship the whole game package again rather than attempting to create a patch download. Patch releases are minor releases that add or edit a smaller number of files; additionally, this type of release is ***cumulative*** to the last core release you published.
@@ -51,21 +51,52 @@ One *very* important thing to note is that the program cannot update itself as p
 
 ```Python
 gameTitle = 'Game Title'
-gameURL = 'https://reliccastle.com'
 urlPath = 'http://domain.com/directory'
-messageFile = 'message'
 versionFile = 'version'
 coreArchive = 'core.zip'
 patchArchive = 'patch.zip'
+
+gameURL = 'https://reliccastle.com'
+changelogURL = 'https://domain.com/changelog'
+iconPath = 'icon.ico'
+installMessage = 'This message will be displayed when the local version is 0.'
+messageFile = 'message'
+
+authMethod = ''
+privateBuildChannelName = 'Private'
+privateCoreArchive = 'private-core.zip'
+privatePatchArchive = 'private-patch.zip'
+privateMessageFile = 'privateMessage'
+passwordFile = 'passwords'
+tokenFile = 'authtoken'
+encKey = ''
+discordWebhookURL = ''
 ```
 
-* `gameTitle` (optional) is fairly self explanatory, it will insert your game's title into all the appropriate spots in the program interface. If you do not define this, it can result in obviously empty spots in the program interface.
-* `gameURL` (optional) can be used for any URL you choose, such as a project thread on Relic Castle or a custom website, which can be launched from the relevant menu item in the program. If this is not defined, the menu item will be disabled.
-* `urlPath` (required) is the *remote* URL path to the directory where your files will be stored. For example, if your website is `https://domain.com` and you will host the files in the `downloads` directory, you would put `https://domain.com/downloads` for this.
-* `messageFile` (optional) is the name of the *remote* file that contains any messages you want to display to users.
-* `versionFile` (required) is the name of the *local* ***and*** *remote* files that contain your version information. I recommend leaving it as the default `version` which can be edited fairly easily but will discourage users from tampering with it.
-* `coreArchive` (required) is the name of the *remote* ***zip*** archive that contains your latest core release.
-* `patchArchive` (required) is the name of the *remote* ***zip*** archive that contains your latest patch release.
+### Required Attributes
+* `gameTitle` is fairly self explanatory, it will insert your game's title into all the appropriate spots in the program interface.
+* `urlPath` is the *remote* URL path to the directory where your files will be stored. For example, if your website is `https://domain.com` and you will host the files in the `downloads` directory, you would put `https://domain.com/downloads` for this.
+* `versionFile` is the name of the *local* ***and*** *remote* files that contain your version information. I recommend leaving it as the default `version` which can be edited fairly easily but will discourage users from tampering with it.
+* `coreArchive` is the name of the *remote* ***zip*** archive that contains your latest core release.
+* `patchArchive` is the name of the *remote* ***zip*** archive that contains your latest patch release.
+
+### Miscellaneous Attributes (all optional)
+* `gameURL` can be used for any URL you choose, such as a project thread on Relic Castle or a custom website, which can be launched from the relevant menu item in the program. If this is not defined, the menu item will be disabled.
+* `changelogURL` should be used as a URL to whatever changelog you keep on your project, which will be launched when the relevant menu item is selected. If this is not defined, the menu item will be disabled.
+* `iconPath` is a *local* path to the name of an .ico format image, which will be used for your program interface. If this is not defined, the program will use the default tkinter icon instead.
+* `installMessage` is a string message that will display whenever the program is launched and the local version is set to 0, which can allow you to define a sort of "welcome" message for any new users or players that is different from the messages displayed to the rest of the users. If this is not defined, no message will be displayed.
+* `messageFile` is the name of the *remote* file that contains any messages you want to display to users. If this is not defined, no message will be displayed.
+
+### Private Build Channel Related Attributes
+* `authMethod` (optional) is what determines how this feature as a whole behaves. If left undefined, the feature is disabled. If you define it as "none", it will allow anyone who uses the program to access the feature. If you define it as "password", it will require users to authorize their computer in order to access the feature.
+* `privateBuildChannelName` (required if `authMethod` is defined) is the name of your private build channel release and will be the name of the directory the build is installed to. The program refers to it as "[NAME] Build Channel" so one word such as "Patreon" or "Testing" would be best.
+* `privateCoreArchive` (required if `authMethod` is defined) is the name of the *remote* ***zip*** archive that contains your latest private build channel core release.
+* `privatePatchArchive` (required if `authMethod` is defined)is the name of the *remote* ***zip*** archive that contains your latest private build channel patch release.
+* `privateMessageFile` (optional) is the name of the *remote* file that contains any messages you want to display to users who can access the private build channel feature. If this is not defined, no message will be displayed.
+* `passwordFile` (required if `authMethod` is defined as "password") is the name of the *remote* file that contains passwords that the program will check the user's input against in order to authorize their computer.
+* `tokenFile` (required if `authMethod` is defined as "password") is the name of the *local* file that will be created in the game directory to store the authorization details that will be checked each time the program opens.
+* `encKey` (required if `authMethod` is defined as "password") is a Fernet encryption key which is used to encrypt & decrypt the `tokenFile` in order to prevent users bypassing the authorization stage.
+* `discordWebhookURL` (optional) is a Discord webhook URL which will be used to send a customized notification any time a user attempts to authorize their computer or if the stored `tokenFile` does not match their computer. If this is not defined, no notification or information will be sent.
 
 ## `core.zip`
 The `core.zip` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `version` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
