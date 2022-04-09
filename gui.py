@@ -9,6 +9,7 @@ def close():
     window.quit()
     sys.exit()
 
+# enables all GUI options
 def enable():
     actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
     updateButton['state'] = NORMAL
@@ -17,6 +18,7 @@ def enable():
         privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
         privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
 
+# disables all GUI options
 def disable():
     actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
     updateButton['state'] = 'disabled'

@@ -24,46 +24,46 @@ patchArchive = 'patch.zip'
 # OPTIONAL: A URL link to your game's information
 gameURL = ''
 
-# OPTIONAL: change log URL
+# OPTIONAL: A URL link to your game's changelog
 changelogURL = ''
 
-# OPTIONAL: local path to window icon, MUST BE .ICO FORMAT
+# OPTIONAL: The local path to a window icon, MUST BE ICO FORMAT
 iconPath = ''
 
-# OPTIONAL: message if local version is 0
+# OPTIONAL: A message which can be displayed (if the local version is 0)
 installMessage = 'This message will be displayed when the local version is 0.'
 
-# OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES (highly recommended,
-# message contents are controlled from the remote server, cannot be changed through update process)
+# OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES
 messageFile = 'message'
 
 
 # Private Build Channel related
 # feature configuration options
 
-# OPTIONAL: authorization method for private build channel
-authMethod = 'password'
+# OPTIONAL: The authorization method for the private build channel
+# OPTIONS: '', 'none', 'password'
+authMethod = 'none'
 
-# REQUIRED (if authMethod is defined): name of private build channel
+# REQUIRED (if authMethod is defined): The name of the private build channel
 privateBuildChannelName = 'Private'
 
-# REQUIRED (if authMethod is defined): core file name, MUST BE ZIP format
+# REQUIRED (if authMethod is defined): The private build channel core file name, MUST BE ZIP format
 privateCoreArchive = 'private-core.zip'
 
-# REQUIRED (if authMethod is defined): patch file name, MUST BE ZIP format
+# REQUIRED (if authMethod is defined): The private build channel patch file name, MUST BE ZIP format
 privatePatchArchive = 'private-patch.zip'
 
-# OPTIONAL: build channel messages
+# OPTIONAL: The private build channel message file name, NO STARTING OR TRAILING SLASHES
 privateMessageFile = 'privateMessage'
 
-# OPTIONAL: remote password file
+# REQUIRED (if authMethod is password): The private build channel password file name, NO STARTING OR TRAILING SLASHES
 passwordFile = 'passwords'
 
-# OPTIONAL: local authtoken file
+# REQUIRED (if authMethod is password): The name of the local token that will be created to store authentication data
 tokenFile = 'authtoken'
 
-# REQUIRED (if authMethod is password): Fernet key for authtoken encryption
-encKey = 'asdf'
+# REQUIRED (if authMethod is password): A Fernet key for encryption purposes
+encKey = ''
 
-# OPTIONAL: Discord webhook URL for authorization related notifications
+# OPTIONAL: A Discord webhook URL for authorization related notifications
 discordWebhookURL = ''

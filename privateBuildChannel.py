@@ -1,5 +1,4 @@
-# TODO: fix styling in new window
-
+# import relevant modules & script files
 from tkinter import *
 from tkinter import messagebox, ttk
 from cryptography.fernet import Fernet
@@ -8,6 +7,7 @@ import os, urllib
 
 import config, gui
 
+# checks to see if any messages can or should be displayed and does so
 def messages():
     if (config.authMethod == 'none' or (config.authMethod == 'password' and os.path.exists(config.tokenFile) == True)):
         try:
@@ -23,6 +23,7 @@ def messages():
         if (messageContent != ''):
             messagebox.showinfo(config.privateBuildChannelName + ' Build Channel Message', messageContent, parent=gui.window)
 
+# sends notification to specified Discord webhook based on passed variables
 def discordNotification(name, pwd, var):
     webhook = DiscordWebhook(url=config.discordWebhookURL)
 
@@ -42,12 +43,15 @@ def discordNotification(name, pwd, var):
     webhook.add_embed(embed)
     webhook.execute()
 
+# checks the authorization status of the computer, based on the authMethod
 def checkStatus():
+    # enables the install options if authMethod is "none"
     if (config.authMethod == 'none'):
         gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
         gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
     elif (config.authMethod == 'password'):
         if (os.path.exists(config.tokenFile) == True):
+            # checks if the remote passwordFile for "reset" in order to reset auth status
             try:
                 remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
             except urllib.error.URLError as e:
@@ -66,6 +70,7 @@ def checkStatus():
                     messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=gui.window)
                     messages()
 
+            # checks if the tokenFile details match the current computer
             try:
                 file = open(config.tokenFile, 'rb')
             except FileNotFoundError:
@@ -86,15 +91,18 @@ def checkStatus():
                     if (config.discordWebhookURL != ''):
                         discordNotification(localToken[0], localToken[1], os.getlogin())
 
-                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=gui.window)
+                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
 
+            # if the tokenFile still exists, enable the install options
             if (os.path.exists(config.tokenFile) == True):
                 gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
                 gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
                 gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+        # if the tokenFile never existed, enables the authorization option
         else:
             gui.privateBuildChannel.entryconfigure('Authorization', state=NORMAL)
 
+# checks the user input to see if it can authorize the computer
 def authorization(authWindow, nameEntry, pwdEntry):
     try:
         remoteRaw = urllib.request.urlopen(config.urlPath + '/' + config.passwordFile).read()
@@ -110,7 +118,12 @@ def authorization(authWindow, nameEntry, pwdEntry):
         pwdList = remoteRaw.split('\r\n')
         pwdList.pop()
 
-        if (pwdEntry in pwdList):
+        # if the auth status has been reset, do not allow it to re-authorize
+        if ('reset' in pwdList):
+            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
+            authWindow.destroy()
+        # if the entered password matches, create the tokenFile to store auth status, also enables the install options immediately
+        elif (pwdEntry in pwdList):
             key = Fernet(config.encKey)
             encToken = key.encrypt(bytes(nameEntry + '\n' + pwdEntry + '\n' + os.getlogin(), 'UTF-8'))
 
@@ -128,12 +141,14 @@ def authorization(authWindow, nameEntry, pwdEntry):
             messagebox.showinfo(config.privateBuildChannelName + ' Authorization', 'Authorization Successful: your computer has been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nPlease use the menu options to install & update the build as necessary.', parent=authWindow)
             messages()
             authWindow.destroy()
+        # if the entered password did not match, displays message and allows more attempts
         else:
             if (config.discordWebhookURL != ''):
                 discordNotification(nameEntry, pwdEntry, 'Failure')
 
             messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization Failed: your computer has not been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nIf you believe this is in error, contact the ' + config.gameTitle + ' developers.', parent=authWindow)
 
+# creates the authorization GUI window
 def createAuthWindow():
     authWindow = Toplevel(gui.window)
     authWindow.title(config.privateBuildChannelName + ' Build Channel Authorization')

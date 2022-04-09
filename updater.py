@@ -1,8 +1,4 @@
-# import relevant modules
-# tkinter for GUI, webbrowser to launch menu links
-# threading for progressbar, urllib for reading remote files
-# requests to download the archives, zipfile to unzip the archives
-# os to delete archives when done
+# import relevant modules & script files
 from tkinter import *
 from tkinter import messagebox, ttk
 import os, requests, shutil, sys, threading, urllib, zipfile
@@ -16,9 +12,7 @@ if (config.gameTitle == '' or config.urlPath == '' or config.versionFile == '' o
     messagebox.showerror('Prelude Error', 'Error: data is missing from the program configuration.\n\nContact the ' + config.gameTitle + ' developers.')
     gui.close()
 
-# passes the versionFile to local error handling, if no errors are
-# found then it retireves the version number, converts it
-# to a float, and returns the result to the function call
+# retireves the local version number, converts it to a float
 def getLocalVersion():
     try:
         file = open(config.versionFile, 'r')
@@ -34,9 +28,7 @@ def getLocalVersion():
 
     return localVersion
 
-# passes the versionFile to remote error handling, if no errors are
-# found then it retireves the version number, converts it
-# to a float, and returns the result to the function call
+# retireves the remote version number, converts it to a float
 def getRemoteVersion():
     try:
         remoteVersion = float(urllib.request.urlopen(config.urlPath + '/' + config.versionFile).read())
@@ -53,10 +45,8 @@ def getRemoteVersion():
 
     return remoteVersion
 
-# passes the messageFile to remote error handling, if no errors are
-# found then it retireves the message contents, converts it
-# to a string, displays the contents in a message box and enables the menu action
-# (if there are any, otherwise it disables the menu action [again])
+# checks to see if any messages can or should be displayed and does so,
+# also enables the menu option if there are any messages that can be displayed
 def displayMessages():
     if (localVersion == 0 and config.installMessage != ''):
         messagebox.showinfo('Welcome to ' + config.gameTitle + '!', config.installMessage, parent=gui.window)
@@ -75,15 +65,15 @@ def displayMessages():
         if (messageContent != ''):
             messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContent, parent=gui.window)
 
-    if (config.privateMessageFile != ''):
+    if (localVersion != 0 and config.privateMessageFile != ''):
         privateBuildChannel.messages()
 
     if (config.installMessage != '' or config.messageFile != '' or config.privateMessageFile != ''):
         gui.actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
 
-# logic tree to determine what gets updated
+# logic tree to determine what gets updated for the regular release channel
 def updateGame():
-    # disables the update menu item & button, as well as the message menu item
+    # disables the GUI elements
     gui.disable()
     if (localVersion == 0):
         gui.actions.entryconfigure('Install Game', state=DISABLED)
@@ -113,9 +103,8 @@ def updateGame():
         gui.progressBar['value'] = 100
         gui.progressLabel['text'] = 'Error.'
 
-    # calls the getLocalVersion to read the new local version info,
-    # sets the localVersionLabel to the new version, displays a update confirmation
-    # message, and re-enables the messages menu item
+    # checks if the new local version is correct, displays message based on that
+    # re-enables GUI elements
     newVersion = getLocalVersion()
     gui.localVersionLabel['text'] = newVersion
     if (newVersion == remoteVersion):
@@ -126,7 +115,9 @@ def updateGame():
     gui.enable()
     gui.updateButton['state'] = 'disabled'
 
+# installs the latest private build channel core release
 def privateCore():
+    # disables GUI elements
     gui.disable()
     if (localVersion == 0):
         gui.actions.entryconfigure('Install Game', state=DISABLED)
@@ -134,16 +125,21 @@ def privateCore():
         gui.actions.entryconfigure('Update Game', state=DISABLED)
     gui.progressBar['value'] = 0
 
+    # deletes and creates the private build folder, installs the core release
     if (os.path.exists(config.privateBuildChannelName) == True):
         shutil.rmtree(config.privateBuildChannelName)
     os.mkdir(config.privateBuildChannelName)
     updateAction(config.privateCoreArchive, 'core')
 
+    # displays confirmation message & re-enables GUI elements
     gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privateCoreArchive + ' is now installed!'
     gui.enable()
 
+# installs the latest private build channel patch release
 def privatePatch():
+    # checks if the core is installed, if not displays error message
     if (os.path.exists(config.privateBuildChannelName) == True):
+        # disables GUI elements
         gui.disable()
         if (localVersion == 0):
             gui.actions.entryconfigure('Install Game', state=DISABLED)
@@ -151,8 +147,10 @@ def privatePatch():
             gui.actions.entryconfigure('Update Game', state=DISABLED)
         gui.progressBar['value'] = 0
 
+        # installs the patch release
         updateAction(config.privatePatchArchive, 'patch')
 
+        # displays confirmation message & re-enables GUI elements
         gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privatePatchArchive + ' is now installed!'
         gui.enable()
     else:
@@ -252,6 +250,7 @@ def updateAction(updateTarget, updateType):
 
     gui.progressBar['value'] += 5
 
+# sets the relevant GUI item commands
 gui.actions.entryconfigure('Update Game', command=lambda: threading.Thread(target=updateGame).start())
 gui.actions.entryconfigure('Display Game Developer Messages', command=displayMessages)
 gui.updateButton['command'] = lambda: threading.Thread(target=updateGame).start()
@@ -262,6 +261,8 @@ if (config.authMethod != ''):
 
 # call relevant functions to get version information,
 # set the appropriate labels to the returned information
+# displays any messages, checks if the computer is
+# authorized for the private build channel
 localVersion = getLocalVersion()
 remoteVersion = getRemoteVersion()
 gui.localVersionLabel['text'] = localVersion

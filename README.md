@@ -93,13 +93,13 @@ One *very* important thing to note is that the program cannot update itself as p
 ## `versionFile`
 `versionFile` is a simple file that contains a float (number with a decimal place) value with your release information. This program is capable of up to four decimal points of precision (over 9000 patch releases), but has only been tested extensively using two decimal points of precision. As such, we recommend the use of a version scheme such as `1.23` for your project. The program will view the whole number (`1.##`) as the core release and the decimal places (`#.23`) as the patch release. The `versionFile` file included in your `coreArchive` should always indicate a core release (`1.0`, `2.0`, etc), while the file included in your `patchArchive` (if you have one) should always match with the remote server's `versionFile` file. One last important point to keep in mind with this program is that it cannot recognize the difference between values like `1.1` and `1.10`.
 
-## `coreArchive`
-The `coreArchive` archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. This should contain a `versionFile` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
+## `coreArchive`, `privateCoreArchive`
+The `coreArchive` (or `privateCoreArchive`) archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. A `coreArchive` should contain a `versionFile` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
 ![Example of coreArchive layout.](https://media.ariastudio.dev/misc/prelude-core.png)
 
-## `patchArchive`
-The `patchArchive` archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. This should contain an updated `versionFile` information file that matches to this patch release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
+## `patchArchive`, `privatePatchArchive`
+The `patchArchive` (or `privatePatchArchive`) archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. A `patchArchive` should contain an updated `versionFile` information file that matches to this patch release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
 ![Example of patchArchive layout.](https://media.ariastudio.dev/misc/prelude-patch.png)
 
@@ -119,7 +119,22 @@ These are what enable you to communicate with users! `installMessage` is static 
 ![Example of a displayed message.](https://media.ariastudio.dev/misc/prelude-message.png)
 
 # Private Build Channel
-`![Example of the authorization screen for the password authentication method.](https://media.ariastudio.dev/misc/prelude-authorization.png)`
+The private build channel feature enables you to manage and distribute two types of releases through the same updater concurrently. The first is the regular release channel which is open to anyone using the updater. The second is the private build channel which can be as restricted as you want it to be. This is determined by how you define your `authMethod` in `config.py`. If you use "none", that will enable anyone to install the latest private build channel core and patch releases. Alternatively, you can use the "password" option to create an entry barrier, as it will require users to provide a password and authenticate their computer in order to proceed. Additionally, you could choose to use a single password for every person or individual passwords for individual people (or some combination such as passwords given based on groups).
+
+## Password Authorization
+The password `authMethod` is a powerful tool that allows you to control who can or cannot access the private build channel. The passwords themselves (as stored in `passwordFile`) could be a single password for the entire group, several different passwords for different groups of people, or individual passwords for each individual person. Users can attempt to authorize their computer by inputting their name (this is not checked, but is used for the notification if you define `discordWebhookURL`) and password. If successful, that information along with their computer login username is written into a local `tokenFile` and encrypted. This file is how the program recognizes a computer is authorized or not. Each time the program starts, if that file is present, it checks the status of the authorization to determine if it is still valid. You are also able to remotely reset all authorization states by changing the contents of the `passwordFile` to "reset".
+
+![Example of the authorization screen for the password authentication method.](https://media.ariastudio.dev/misc/prelude-authorization.png)
+
+## Private Build Installation
+The private build channel differs from the regular release channel in that it does *not* track any version information. These are seen as dynamic builds which can change rapidly. There are two menu options available for users to use to install the latest builds. The first option is a core install option which deletes the old build and installs the current latest core fresh. The second option is for a patch installation, which simply follows the same basic process as the regular patching process. Note that the private build is stored in a subdirectory of the game directory itself, which is named based on the `privateBuildChannelName` defined in `config.py`.
+
+## `utilityScript.py`
+Depending on your use case, the private build channel feature could need to support quite a few people! To make things easier for you, you can use the `utilityScript.py` file in the scripts directory to automate some things! It is able to do the following:
+1. Generate a Fernet encryption key (this is required if you use the password `authMethod`)
+1. Generate a list of given number of passwords as needed in your `passwordFile` to be uploaded directly to your remote directory for authentication purposes
+1. Send a test email invitation using your provided text to check formatting and such before mass inviting people
+1. Send emails to several people based on a CSV containing a name & email, along with your `passwordFile`, and your provided text.
 
 # Testing
 Prelude is tested against several different scenarios before any new code release. You can look at the list of scenarios we test against [here](https://docs.google.com/spreadsheets/d/188AKWlHg5QAhtioRswFOT3Xm4uZ1Rmn-n1u9BfvxH-o/edit?usp=sharing) and if you can think of any scenarios that are not covered by those in the list, please let us know so we can add those to our slate for next time.
