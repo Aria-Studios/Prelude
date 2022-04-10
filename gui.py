@@ -12,6 +12,8 @@ def close():
 # enables all GUI options
 def enable():
     actions.entryconfigure('Display Game Developer Messages', state=NORMAL)
+    actions.entryconfigure('Download Latest Core', state=NORMAL)
+    actions.entryconfigure('Download Latest Patch', state=NORMAL)
     updateButton['state'] = NORMAL
     if (config.authMethod != ''):
         privateBuildChannel.entryconfigure('Authorization', state=DISABLED)
@@ -21,6 +23,8 @@ def enable():
 # disables all GUI options
 def disable():
     actions.entryconfigure('Display Game Developer Messages', state=DISABLED)
+    actions.entryconfigure('Download Latest Core', state=DISABLED)
+    actions.entryconfigure('Download Latest Patch', state=DISABLED)
     updateButton['state'] = 'disabled'
     if (config.authMethod != ''):
         privateBuildChannel.entryconfigure('Authorization', state=DISABLED)

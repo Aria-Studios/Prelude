@@ -134,6 +134,10 @@ def privateCore():
     # displays confirmation message & re-enables GUI elements
     gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privateCoreArchive + ' is now installed!'
     gui.enable()
+    if (localVersion == 0):
+        gui.actions.entryconfigure('Install Game', state=NORMAL)
+    else:
+        gui.actions.entryconfigure('Update Game', state=NORMAL)
 
 # installs the latest private build channel patch release
 def privatePatch():
@@ -153,6 +157,10 @@ def privatePatch():
         # displays confirmation message & re-enables GUI elements
         gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privatePatchArchive + ' is now installed!'
         gui.enable()
+        if (localVersion == 0):
+            gui.actions.entryconfigure('Install Game', state=NORMAL)
+        else:
+            gui.actions.entryconfigure('Update Game', state=NORMAL)
     else:
         messagebox.showerror('Prelude Error', 'Error: please install the ' + config.privateBuildChannelName + ' build core first.', parent=gui.window)
 

@@ -6,7 +6,7 @@
 gameTitle = 'Game Title'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://media.ariastudio.dev/prelude'
+urlPath = 'https://domain.com/downloads'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -31,7 +31,7 @@ changelogURL = ''
 iconPath = ''
 
 # OPTIONAL: A message which can be displayed (if the local version is 0)
-installMessage = 'This message will be displayed when the local version is 0.'
+installMessage = ''
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES
 messageFile = 'message'
@@ -42,7 +42,7 @@ messageFile = 'message'
 
 # OPTIONAL: The authorization method for the private build channel
 # OPTIONS: '', 'none', 'password'
-authMethod = 'none'
+authMethod = ''
 
 # REQUIRED (if authMethod is defined): The name of the private build channel
 privateBuildChannelName = 'Private'

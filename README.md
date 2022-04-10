@@ -1,4 +1,4 @@
-![Prelude interface.](https://media.ariastudio.dev/misc/prelude.png)
+![Prelude interface.](https://media.ariastudio.dev/prelude/header.png)
 
 # Prelude
 Prelude is a simple update utility designed for use with Pokémon fangames made using Pokémon Essentials and RPG Maker XP. It is written using Python 3.10.2 and was developed on Windows, has been tested extensively on Windows and Linux, but it does *not* work on MacOS at the moment. Once you've edited the configuration values and compiled the code, you can include the executable file in your base game download. This program can be launched in order to check for any updates that are available, then download and install those updates automatically. The program also has the functionality to display a message to users if there is something important that needs to be communicated to them. It can also be used to distribute in development copies of your game for whatever purpose, such as testing, Patreon rewards, etc.
@@ -96,27 +96,27 @@ One *very* important thing to note is that the program cannot update itself as p
 ## `coreArchive`, `privateCoreArchive`
 The `coreArchive` (or `privateCoreArchive`) archive should contain a copy of the full game directory. It should also be setup so that files can be directly unzipped from the game folder. A `coreArchive` should contain a `versionFile` information file that matches to this core release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
-![Example of coreArchive layout.](https://media.ariastudio.dev/misc/prelude-core.png)
+![Example of coreArchive layout.](https://media.ariastudio.dev/prelude/core.png)
 
 ## `patchArchive`, `privatePatchArchive`
 The `patchArchive` (or `privatePatchArchive`) archive should contain a copy of ***all files that have been updated since the latest core release*** -- in other words, it is a cumulative patch, not sequential. It should also be setup so that files can be directly unzipped from the game folder. A `patchArchive` should contain an updated `versionFile` information file that matches to this patch release, which will overwrite the user's current local copy when they update. See the screenshot below for what an example setup should look like.
 
-![Example of patchArchive layout.](https://media.ariastudio.dev/misc/prelude-patch.png)
+![Example of patchArchive layout.](https://media.ariastudio.dev/prelude/patch.png)
 
 ## Local (Game Folder)
 Locally, this program works off the assumption that it will be run in the same location as your game executable. This means that you'll need to include two (2) files with your base game: the executable itself and `versionFile` information file. See the screenshot below for what an example setup should look like.
 
-![Example of local folder layout.](https://media.ariastudio.dev/misc/prelude-local.png)
+![Example of local folder layout.](https://media.ariastudio.dev/prelude/local.png)
 
 ## Remote (Downloads Directory)
 On the remote server, the setup is fairly simple: pick a location and upload the files relevant to your particular setup. This means at least uploading the `versionFile` information file, `coreArchive` archive, and `patchArchive` archive; however, it could also include the `message` information file (if you're making use of this feature), `privateCoreArchive` archive, `privatePatchArchive` archive, `passwordFile` information file, or `privateMessageFile` information file (if you're making use of any of the private build channel feature). As long as it can be reached by a standard HTTP request, then the program can function correctly. See the screenshot below for what an example setup should look like.
 
-![Example of remote folder layout.](https://media.ariastudio.dev/misc/prelude-remote.png)
+![Example of remote folder layout.](https://media.ariastudio.dev/prelude/remote.png)
 
 ## `messageFile`, `installMessage`, `privateMessageFile`
 These are what enable you to communicate with users! `installMessage` is static and defined as a string in your `config.py` file before compiling, so it cannot change. `messageFile` and `privateMessageFile` (depending on your use case) are defined as file names which are hosted in your remote server, and can be edited to allow for the contents to change over time.  You could use this for anything, such as communicating that the next release will be a large core download or if there are special events ongoing in your game (such as a Mystery Gift). These three types of messages are all displayed under different circumstances, so keep that in mind while setting things up. `installMessage` is only displayed if the contents of the local `versionFile` is 0. `messageFile` is only displayed if the contents of the local `versionFile` is *not* 0. `privateMessageFile` is only displayed if the `authMethod` is set to "none" or if the computer is authorized when the `authMethod` is set to "password". After the messages has been dismissed, they can be displayed again via the relevant menu option. If the file is *empty*, the program will not display anything. Likewise if any of these values were not defined in `config.py`, then the program will not display anything (if none of these values were defined, the relevant menu option will be disabled). If any of the files are not present in your remote server directory when the in the case it tries to retrieve their contents, the program will display an error message anytime it is started or if the menu item is triggered. See the screenshot below for what an example message can look like.
 
-![Example of a displayed message.](https://media.ariastudio.dev/misc/prelude-message.png)
+![Example of a displayed message.](https://media.ariastudio.dev/prelude/message.png)
 
 # Private Build Channel
 The private build channel feature enables you to manage and distribute two types of releases through the same updater concurrently. The first is the regular release channel which is open to anyone using the updater. The second is the private build channel which can be as restricted as you want it to be. This is determined by how you define your `authMethod` in `config.py`. If you use "none", that will enable anyone to install the latest private build channel core and patch releases. Alternatively, you can use the "password" option to create an entry barrier, as it will require users to provide a password and authenticate their computer in order to proceed. Additionally, you could choose to use a single password for every person or individual passwords for individual people (or some combination such as passwords given based on groups).
@@ -124,7 +124,7 @@ The private build channel feature enables you to manage and distribute two types
 ## Password Authorization
 The password `authMethod` is a powerful tool that allows you to control who can or cannot access the private build channel. The passwords themselves (as stored in `passwordFile`) could be a single password for the entire group, several different passwords for different groups of people, or individual passwords for each individual person. Users can attempt to authorize their computer by inputting their name (this is not checked, but is used for the notification if you define `discordWebhookURL`) and password. If successful, that information along with their computer login username is written into a local `tokenFile` and encrypted. This file is how the program recognizes a computer is authorized or not. Each time the program starts, if that file is present, it checks the status of the authorization to determine if it is still valid. You are also able to remotely reset all authorization states by changing the contents of the `passwordFile` to "reset".
 
-![Example of the authorization screen for the password authentication method.](https://media.ariastudio.dev/misc/prelude-authorization.png)
+![Example of the authorization screen for the password authentication method.](https://media.ariastudio.dev/prelude/authorization.png)
 
 ## Private Build Installation
 The private build channel differs from the regular release channel in that it does *not* track any version information. These are seen as dynamic builds which can change rapidly. There are two menu options available for users to use to install the latest builds. The first option is a core install option which deletes the old build and installs the current latest core fresh. The second option is for a patch installation, which simply follows the same basic process as the regular patching process. Note that the private build is stored in a subdirectory of the game directory itself, which is named based on the `privateBuildChannelName` defined in `config.py`.
