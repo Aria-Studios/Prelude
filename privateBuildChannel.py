@@ -17,11 +17,10 @@ def messages():
                 messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.privateMessageFile + ' information file.\n\n' + str(e.reason), parent=gui.window)
             elif hasattr(e, 'code'):
                 messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n\n' + str(e.code), parent=gui.window)
-
-        messageContent = messageContent.decode('UTF-8')
-
-        if (messageContent != ''):
-            messagebox.showinfo(config.privateBuildChannelName + ' Build Channel Message', messageContent, parent=gui.window)
+        else:
+            messageContent = messageContent.decode('UTF-8')
+            if (messageContent != ''):
+                messagebox.showinfo(config.privateBuildChannelName + ' Build Channel Message', messageContent, parent=gui.window)
 
 # sends notification to specified Discord webhook based on passed variables
 def discordNotification(name, pwd, var):
@@ -66,11 +65,12 @@ def checkStatus():
                 pwdList = remoteRaw.split('\r\n')
 
                 if ('reset' in pwdList):
-                    os.remove(config.tokenFile)
-                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer.', parent=gui.window)
                     messages()
+                    os.remove(config.tokenFile)
+                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
 
             # checks if the tokenFile details match the current computer
+        if (os.path.exists(config.tokenFile) == True):
             try:
                 file = open(config.tokenFile, 'rb')
             except FileNotFoundError:
@@ -91,7 +91,7 @@ def checkStatus():
                     if (config.discordWebhookURL != ''):
                         discordNotification(localToken[0], localToken[1], os.getlogin())
 
-                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
+                    messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer.', parent=gui.window)
 
             # if the tokenFile still exists, enable the install options
             if (os.path.exists(config.tokenFile) == True):
@@ -116,11 +116,13 @@ def authorization(authWindow, nameEntry, pwdEntry):
     else:
         remoteRaw = remoteRaw.decode('UTF-8')
         pwdList = remoteRaw.split('\r\n')
-        pwdList.pop()
+
+        if (pwdList[len(pwdList)-1] == ''):
+            pwdList.pop()
 
         # if the auth status has been reset, do not allow it to re-authorize
         if ('reset' in pwdList):
-            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'The local ' + config.tokenFile + ' for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel is not correct.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
+            messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
             authWindow.destroy()
         # if the entered password matches, create the tokenFile to store auth status, also enables the install options immediately
         elif (pwdEntry in pwdList):

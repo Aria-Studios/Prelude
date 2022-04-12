@@ -6,7 +6,7 @@
 gameTitle = 'Game Title'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://domain.com/downloads'
+urlPath = 'https://example.com/downloads'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'

@@ -59,11 +59,10 @@ def displayMessages():
                 messagebox.showerror('Prelude Error', 'Failed to reach the remote server\'s ' + config.messageFile + ' information file.\n\n' + str(e.reason), parent=gui.window)
             elif hasattr(e, 'code'):
                 messagebox.showerror('Prelude Error', 'Server could not fulfill the request.\n\n' + str(e.code), parent=gui.window)
-
-        messageContent = messageContent.decode('UTF-8')
-
-        if (messageContent != ''):
-            messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContent, parent=gui.window)
+        else:
+            messageContent = messageContent.decode('UTF-8')
+            if (messageContent != ''):
+                messagebox.showinfo('A Message from the ' + config.gameTitle + ' Developers', messageContent, parent=gui.window)
 
     if (localVersion != 0 and config.privateMessageFile != ''):
         privateBuildChannel.messages()
@@ -168,7 +167,7 @@ def privatePatch():
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
 
-    if (updateType == 'core'):
+    if (updateTarget == config.coreArchive or updateTarget == config.privateCoreArchive):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
@@ -216,7 +215,7 @@ def updateAction(updateTarget, updateType):
 
     updateFile.close()
 
-    if (updateType == 'core'):
+    if (updateTarget == config.coreArchive or updateTarget == config.privateCoreArchive):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
@@ -235,17 +234,17 @@ def updateAction(updateTarget, updateType):
         messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' is corrupted.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
     except PermissionError:
-        if (os.path.basename(sys.argv[0]) in updateTarget.namelist()):
+        if (os.path.basename(sys.argv[0]) in updateFile.namelist()):
             messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
             gui.close()
         else:
-            messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' contains files currently being used by other programs.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+            messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' contains files currently being used by other programs or that the program cannot overwrite (including hidden files).\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
             gui.close()
 
     updateFile.close()
     gui.progressBar['value'] += 5
 
-    if (updateType == 'core'):
+    if (updateTarget == config.coreArchive or updateTarget == config.privateCoreArchive):
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
@@ -275,11 +274,11 @@ localVersion = getLocalVersion()
 remoteVersion = getRemoteVersion()
 gui.localVersionLabel['text'] = localVersion
 gui.remoteVersionLabel['text'] = remoteVersion
-displayMessages()
 privateBuildChannel.checkStatus()
+displayMessages()
 
 # if the local version is out of date, enable the update options
-if (localVersion == 0):
+if (localVersion == 0 and remoteVersion > 0):
     gui.actions.entryconfigure('Update Game', label='Install Game', state=NORMAL)
     gui.updateButton['text'] = 'Install Game'
     gui.updateButton['state'] = NORMAL

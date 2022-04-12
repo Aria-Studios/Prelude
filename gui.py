@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-import sys, webbrowser
+import os, sys, webbrowser
 
 import config
 
@@ -34,7 +34,7 @@ def disable():
 # sets up the GUI
 window = Tk()
 window.title(config.gameTitle + ' Updater')
-if (config.iconPath != ''):
+if (config.iconPath != '' and os.path.exists(config.iconPath) == True):
     window.iconbitmap(config.iconPath)
 window.option_add('*tearOff', False)
 window.columnconfigure(0, weight=1)

@@ -36,7 +36,7 @@ def pwdGen():
     print('\npasswords generated. you will upload the created file to your server for users to authenticate against.')
 
 def main():
-    print('\nmiscellaneous functions companion script (v1)')
+    print('\nutility functions companion script (v1)')
     print('------------------------------')
     print('1 - generate encryption key.')
     print('2 - generate passwords for script.')
