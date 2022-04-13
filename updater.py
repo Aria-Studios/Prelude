@@ -74,6 +74,7 @@ def displayMessages():
 def updateGame():
     # disables the GUI elements
     gui.disable()
+    gui.progressBar['value'] = 0
     if (localVersion == 0):
         gui.actions.entryconfigure('Install Game', state=DISABLED)
     else:
@@ -116,27 +117,32 @@ def updateGame():
 
 # installs the latest private build channel core release
 def privateCore():
-    # disables GUI elements
-    gui.disable()
-    if (localVersion == 0):
-        gui.actions.entryconfigure('Install Game', state=DISABLED)
-    else:
-        gui.actions.entryconfigure('Update Game', state=DISABLED)
-    gui.progressBar['value'] = 0
+    # checks if the core is installed, if it is, it displays an error message
+    if (os.path.exists(config.privateBuildChannelName) == False):
+        # disables GUI elements
+        gui.disable()
+        if (localVersion == 0):
+            gui.actions.entryconfigure('Install Game', state=DISABLED)
+        else:
+            gui.actions.entryconfigure('Update Game', state=DISABLED)
+        gui.progressBar['value'] = 0
 
-    # deletes and creates the private build folder, installs the core release
-    if (os.path.exists(config.privateBuildChannelName) == True):
-        shutil.rmtree(config.privateBuildChannelName)
-    os.mkdir(config.privateBuildChannelName)
-    updateAction(config.privateCoreArchive, 'core')
+        # creates the private build folder, installs the core release
+        os.mkdir(config.privateBuildChannelName)
+        updateAction(config.privateCoreArchive, 'core')
 
-    # displays confirmation message & re-enables GUI elements
-    gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privateCoreArchive + ' is now installed!'
-    gui.enable()
-    if (localVersion == 0):
-        gui.actions.entryconfigure('Install Game', state=NORMAL)
+        # displays confirmation message & re-enables GUI elements
+        gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privateCoreArchive + ' is now installed!'
+        gui.enable()
+        if (getLocalVersion() != remoteVersion):
+            if (localVersion == 0):
+                gui.actions.entryconfigure('Install Game', state=NORMAL)
+            else:
+                gui.actions.entryconfigure('Update Game', state=NORMAL)
+        else:
+            gui.updateButton['state'] = 'disabled'
     else:
-        gui.actions.entryconfigure('Update Game', state=NORMAL)
+        messagebox.showerror('Prelude Error', 'Error: you cannot install the ' + config.privateBuildChannelName + ' build without removing the previous version first.', parent=gui.window)
 
 # installs the latest private build channel patch release
 def privatePatch():
@@ -156,21 +162,51 @@ def privatePatch():
         # displays confirmation message & re-enables GUI elements
         gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build ' + config.privatePatchArchive + ' is now installed!'
         gui.enable()
-        if (localVersion == 0):
-            gui.actions.entryconfigure('Install Game', state=NORMAL)
+        gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=DISABLED)
+        if (getLocalVersion() != remoteVersion):
+            if (localVersion == 0):
+                gui.actions.entryconfigure('Install Game', state=NORMAL)
+            else:
+                gui.actions.entryconfigure('Update Game', state=NORMAL)
         else:
-            gui.actions.entryconfigure('Update Game', state=NORMAL)
+            gui.updateButton['state'] = 'disabled'
+    else:
+        messagebox.showerror('Prelude Error', 'Error: please install the ' + config.privateBuildChannelName + ' build core first.', parent=gui.window)
+
+# removes the private build channel if installed
+def removePrivate():
+    # checks if the core is installed, if not displays error message
+    if (os.path.exists(config.privateBuildChannelName) == True):
+        # disables GUI elements
+        gui.disable()
+        gui.progressBar['value'] = 0
+
+        # deletes the directory
+        shutil.rmtree(config.privateBuildChannelName)
+
+        # displays confirmation message & re-enables GUI elements
+        gui.progressLabel['text'] = 'Successfully removed the ' + config.privateBuildChannelName + ' build.'
+        gui.progressBar['value'] = 100
+        gui.enable()
+        if (getLocalVersion() != remoteVersion):
+            if (localVersion == 0):
+                gui.actions.entryconfigure('Install Game', state=NORMAL)
+            else:
+                gui.actions.entryconfigure('Update Game', state=NORMAL)
+        else:
+            gui.updateButton['state'] = 'disabled'
     else:
         messagebox.showerror('Prelude Error', 'Error: please install the ' + config.privateBuildChannelName + ' build core first.', parent=gui.window)
 
 # handles the actual updating, based on the targetted archive and what kind of update it is
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
-
-    if (updateTarget == config.coreArchive or updateTarget == config.privateCoreArchive):
+    if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
-    else:
+    elif (updateTarget == config.patchArchive):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
+    else:
+        gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' archive.'
 
     try:
         download = requests.get(config.urlPath + '/' + updateTarget, stream=True, timeout=30)
@@ -215,10 +251,12 @@ def updateAction(updateTarget, updateType):
 
     updateFile.close()
 
-    if (updateTarget == config.coreArchive or updateTarget == config.privateCoreArchive):
+    if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
-    else:
+    elif (updateTarget == config.patchArchive):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
+    else:
+        gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' archive.'
 
     try:
         updateFile = zipfile.ZipFile(updateTarget, 'r')
@@ -244,10 +282,12 @@ def updateAction(updateTarget, updateType):
     updateFile.close()
     gui.progressBar['value'] += 5
 
-    if (updateTarget == config.coreArchive or updateTarget == config.privateCoreArchive):
+    if (updateTarget == config.coreArchive):
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(int(remoteVersion)) + ') archive.'
-    else:
+    elif (updateTarget == config.patchArchive):
         gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
+    else:
+        gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' archive.'
 
     try:
         os.remove(updateTarget)
@@ -265,6 +305,7 @@ if (config.authMethod != ''):
     gui.privateBuildChannel.entryconfigure('Authorization', command=privateBuildChannel.createAuthWindow)
     gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', command=lambda: threading.Thread(target=privateCore).start())
     gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', command=lambda: threading.Thread(target=privatePatch).start())
+    gui.privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', command=removePrivate)
 
 # call relevant functions to get version information,
 # set the appropriate labels to the returned information

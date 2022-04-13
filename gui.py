@@ -16,9 +16,11 @@ def enable():
     actions.entryconfigure('Download Latest Patch', state=NORMAL)
     updateButton['state'] = NORMAL
     if (config.authMethod != ''):
-        privateBuildChannel.entryconfigure('Authorization', state=DISABLED)
-        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
-        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+        if (os.path.exists(config.privateBuildChannelName) == True):
+            privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+            privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', state=NORMAL)
+        else:
+            privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
 
 # disables all GUI options
 def disable():
@@ -27,9 +29,9 @@ def disable():
     actions.entryconfigure('Download Latest Patch', state=DISABLED)
     updateButton['state'] = 'disabled'
     if (config.authMethod != ''):
-        privateBuildChannel.entryconfigure('Authorization', state=DISABLED)
         privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=DISABLED)
         privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=DISABLED)
+        privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', state=DISABLED)
 
 # sets up the GUI
 window = Tk()
@@ -63,6 +65,7 @@ if (config.authMethod != ''):
     privateBuildChannel.add_separator()
     privateBuildChannel.add_command(label='Install Latest ' + config.privateBuildChannelName + ' Build Core', command=None, state='disabled')
     privateBuildChannel.add_command(label='Install Latest ' + config.privateBuildChannelName + ' Build Patch', command=None, state='disabled')
+    privateBuildChannel.add_command(label='Remove ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
 about = Menu(menubar)
 menubar.add_cascade(label='About', menu=about)
 if (config.gameURL != ''):

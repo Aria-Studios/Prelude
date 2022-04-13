@@ -46,8 +46,12 @@ def discordNotification(name, pwd, var):
 def checkStatus():
     # enables the install options if authMethod is "none"
     if (config.authMethod == 'none'):
-        gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
-        gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+        if (os.path.exists(config.privateBuildChannelName) == True):
+            gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+            gui.privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', state=NORMAL)
+        else:
+            gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+
     elif (config.authMethod == 'password'):
         if (os.path.exists(config.tokenFile) == True):
             # checks if the remote passwordFile for "reset" in order to reset auth status
@@ -96,8 +100,12 @@ def checkStatus():
             # if the tokenFile still exists, enable the install options
             if (os.path.exists(config.tokenFile) == True):
                 gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
-                gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
-                gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+                if (os.path.exists(config.privateBuildChannelName) == True):
+                    gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
+                    gui.privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', state=NORMAL)
+                else:
+                    gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+
         # if the tokenFile never existed, enables the authorization option
         else:
             gui.privateBuildChannel.entryconfigure('Authorization', state=NORMAL)
@@ -138,7 +146,6 @@ def authorization(authWindow, nameEntry, pwdEntry):
 
             gui.privateBuildChannel.entryconfigure('Authorization', state='disabled')
             gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
-            gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
 
             messagebox.showinfo(config.privateBuildChannelName + ' Authorization', 'Authorization Successful: your computer has been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nPlease use the menu options to install & update the build as necessary.', parent=authWindow)
             messages()

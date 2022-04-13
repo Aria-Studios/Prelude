@@ -6,7 +6,7 @@
 gameTitle = 'Game Title'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://example.com/downloads'
+urlPath = 'https://media.ariastudio.dev/prelude/test-data'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -42,7 +42,7 @@ messageFile = 'message'
 
 # OPTIONAL: The authorization method for the private build channel
 # OPTIONS: '', 'none', 'password'
-authMethod = ''
+authMethod = 'password'
 
 # REQUIRED (if authMethod is defined): The name of the private build channel
 privateBuildChannelName = 'Private'
@@ -63,7 +63,7 @@ passwordFile = 'passwords'
 tokenFile = 'authtoken'
 
 # REQUIRED (if authMethod is password): A Fernet key for encryption purposes
-encKey = ''
+encKey = 'wN2tTI9qqgJqF9ya2FM9CxqWmiiSV3nqvCmOy8EJxqw='
 
 # OPTIONAL: A Discord webhook URL for authorization related notifications
 discordWebhookURL = ''
