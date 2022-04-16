@@ -20,7 +20,10 @@ def enable():
             privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=NORMAL)
             privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', state=NORMAL)
         else:
-            privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+            if (config.authMethod == 'none' or os.path.exists(config.tokenFile) == True):
+                privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=NORMAL)
+            else:
+                privateBuildChannel.entryconfigure('Authorization', state=NORMAL)
 
 # disables all GUI options
 def disable():
@@ -29,6 +32,7 @@ def disable():
     actions.entryconfigure('Download Latest Patch', state=DISABLED)
     updateButton['state'] = 'disabled'
     if (config.authMethod != ''):
+        privateBuildChannel.entryconfigure('Authorization', state=DISABLED)
         privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Core', state=DISABLED)
         privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build Patch', state=DISABLED)
         privateBuildChannel.entryconfigure('Remove ' + config.privateBuildChannelName + ' Build', state=DISABLED)

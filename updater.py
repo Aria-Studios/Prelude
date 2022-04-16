@@ -1,6 +1,3 @@
-# TODO: make sure authorization option is disabled during actions
-# TODO: add check for existing DL archive before downloading, delete if exists
-
 # import relevant modules & script files
 from tkinter import *
 from tkinter import messagebox, ttk
@@ -210,6 +207,9 @@ def updateAction(updateTarget, updateType):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(float(remoteVersion)) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' archive.'
+
+    if (os.path.exists(updateTarget) == True):
+        os.remove(updateTarget)
 
     try:
         download = requests.get(config.urlPath + '/' + updateTarget, stream=True, timeout=30)
