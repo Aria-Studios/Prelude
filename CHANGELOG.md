@@ -1,4 +1,5 @@
 # v3 - April 2022
+***Updated Module Requirements*** - Prelude now requires the [cryptography](https://pypi.org/project/cryptography/) and [discord-webhook](https://github.com/lovvskillz/python-discord-webhook) modules in addition to those previously required. Be sure to install those before updating to v3.
 * Private Build Channel: a new feature which allows you to deploy and manage a secondary release channel, for use cases such as testing or early access builds.
 * Installer friendly setup: if you set the local version to 0, the GUI will now say "install" instead of "update". This expands on your ability to ship a small initial download package with only the program files, which handle the actual game files for the users. Additionally, you can define a static message in the config values to be displayed when the local version is 0.
 * Progress bar, now progressing: the progress bar has now been tied into the download process, so it will reflect the download progress! Shout out to [enumag](https://gitlab.com/enumag) for the assistance here!

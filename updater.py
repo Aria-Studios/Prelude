@@ -1,3 +1,6 @@
+# TODO: make sure authorization option is disabled during actions
+# TODO: add check for existing DL archive before downloading, delete if exists
+
 # import relevant modules & script files
 from tkinter import *
 from tkinter import messagebox, ttk
@@ -258,9 +261,12 @@ def updateAction(updateTarget, updateType):
     else:
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' archive.'
 
-    try:
-        updateFile = zipfile.ZipFile(updateTarget, 'r')
+    updateFile = zipfile.ZipFile(updateTarget, 'r')
+    if (os.path.basename(sys.argv[0]) in updateFile.namelist()):
+        messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
+        gui.close()
 
+    try:
         if (updateTarget == config.coreArchive or updateTarget == config.patchArchive):
             updateFile.extractall()
         else:
@@ -272,12 +278,8 @@ def updateAction(updateTarget, updateType):
         messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' is corrupted.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
         gui.close()
     except PermissionError:
-        if (os.path.basename(sys.argv[0]) in updateFile.namelist()):
-            messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
-            gui.close()
-        else:
-            messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' contains files currently being used by other programs or that the program cannot overwrite (including hidden files).\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
-            gui.close()
+        messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' contains files currently being used by other programs or that the program cannot overwrite (including hidden files).\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
+        gui.close()
 
     updateFile.close()
     gui.progressBar['value'] += 5
