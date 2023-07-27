@@ -3,10 +3,10 @@
 # # # # # # # # # # # # # #
 
 # REQUIRED: Title of your game
-gameTitle = 'Game Title'
+gameTitle = 'Test'
 
 # REQUIRED: The URL path to where the remote files are stored, NO TRAILING SLASHES
-urlPath = 'https://domain.com/downloads'
+urlPath = 'https://example.com/prelude'
 
 # REQUIRED: The version file name, NO STARTING OR TRAILING SLASHES
 versionFile = 'version'
@@ -31,7 +31,7 @@ changelogURL = ''
 iconPath = ''
 
 # OPTIONAL: A message which can be displayed (if the local version is 0)
-installMessage = ''
+installMessage = 'This is a new game!'
 
 # OPTIONAL: The message file name, NO STARTING OR TRAILING SLASHES
 messageFile = 'message'
