@@ -2,5 +2,6 @@ __pycache__/
 *.exe
 old/
 scripts/
-encKey.py
-config-data
+misc/
+encKey
+configData
