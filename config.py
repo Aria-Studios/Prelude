@@ -4,8 +4,6 @@
 
 # from cryptography.fernet import Fernet
 
-import os
-
 configFile = open('configData', 'r')
 config = configFile.read()
 configFile.close()
@@ -17,7 +15,7 @@ gameURL = config[2]
 changelogURL = config[3]
 operatingSystem = config[4]
 
-if os.path.exists('privateConfigData'):
+try:
     privateConfigFile = open('privateConfigData', 'r')
     privateBuildConfig = privateConfigFile.read()
     privateConfigFile.close()
@@ -28,7 +26,8 @@ if os.path.exists('privateConfigData'):
     privateBuildChannelAuthMethod = privateBuildConfig[2]
     privateBuildChannelEncKey = privateBuildConfig[3]
     discordWebhookURL = privateBuildConfig[4]
-else:
+    privateBuildChannelChangelogURL = privateBuildConfig[5]
+except FileNotFoundError:
     privateBuildChannelAuthMethod = ''
 
 """ configFile = open('configData', 'rb')
