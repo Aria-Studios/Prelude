@@ -4,9 +4,6 @@ import os, sys, webbrowser
 
 import config
 
-# to do: check to see if conditional for icon file is necessary
-# to do: fix all menus
-
 # functions to fully close the program at any point
 def close():
     window.quit()
@@ -20,7 +17,9 @@ def enable():
     updateButton['state'] = NORMAL
     if (config.privateBuildChannelAuthMethod != ''):
         privateBuildChannel.entryconfigure('Display ' + config.privateBuildChannelName + ' Build Messages', state=NORMAL)
-        privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', state=NORMAL)
+        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build', state=NORMAL)
+        privateBuildChannel.entryconfigure('Download Latest ' + config.privateBuildChannelName + ' Core', state=NORMAL)
+        privateBuildChannel.entryconfigure('Download Latest ' + config.privateBuildChannelName + ' Patch', state=NORMAL)
 
 # disables all GUI options
 def disable():
@@ -30,7 +29,9 @@ def disable():
     updateButton['state'] = 'disabled'
     if (config.privateBuildChannelAuthMethod != ''):
         privateBuildChannel.entryconfigure('Display ' + config.privateBuildChannelName + ' Build Messages', state=DISABLED)
-        privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', state=DISABLED)
+        privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build', state=DISABLED)
+        privateBuildChannel.entryconfigure('Download Latest ' + config.privateBuildChannelName + ' Core', state=DISABLED)
+        privateBuildChannel.entryconfigure('Download Latest ' + config.privateBuildChannelName + ' Patch', state=DISABLED)
 
 # sets up the GUI
 window = Tk()
@@ -61,7 +62,7 @@ actions.add_command(label='Close', command=close)
 if (config.privateBuildChannelAuthMethod != ''):
     privateBuildChannel = Menu(menubar)
     menubar.add_cascade(label=config.privateBuildChannelName + ' Build Channel', menu=privateBuildChannel)
-    privateBuildChannel.add_command(label='Update ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
+    privateBuildChannel.add_command(label='Install Latest ' + config.privateBuildChannelName + ' Build', command=None, state='disabled')
     privateBuildChannel.add_command(label='Display ' + config.privateBuildChannelName + ' Build Messages', command=None, state='disabled')
     privateBuildChannel.add_separator()
     if (config.privateBuildChannelChangelogURL != ''):

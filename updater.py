@@ -1,6 +1,5 @@
-# to do: fix progress bar/GUI messages
 # to do: finalize updater updating
-# to do: fix the retain data section
+# to do: fix the prep section before compiling
 
 # import relevant modules & script files
 from tkinter import *
@@ -15,9 +14,9 @@ if (config.gameTitle == '' or config.urlPath == '' or (config.privateBuildChanne
     gui.close()
 
 if (os.path.exists('authToken') == True):
-    resetStatus = requests.head(config.privateBuildChannelURLPath + '/resetToken')
+    resetToken = requests.head(config.privateBuildChannelURLPath + '/resetToken')
 
-    if (resetStatus.status_code == requests.codes.ok or config.privateBuildChannelEncKey == ''):
+    if (resetToken.status_code == requests.codes.ok or config.privateBuildChannelEncKey == '' or config.privateBuildChannelAuthMethod == ''):
         os.remove('authToken')
         messagebox.showwarning(config.privateBuildChannelName + ' Authorization', 'Authorization status for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel has been reset by the ' + config.gameTitle + ' developers.\n\nYou will need to reauthorize this computer at a later date.', parent=gui.window)
 
@@ -107,18 +106,22 @@ def standardBuild():
     # if the remote core release is not equal to the remote patch release,
     # then install both the core and patch releases.
     if ((remoteVersion.major > localVersion.major or remoteVersion.minor > localVersion.minor) and remoteVersion.patch > 0):
+        updateType = 'standard-full'
         if (config.operatingSystem != ''):
-            updateAction(config.operatingSystem + '.zip', 'standard-full')
-        updateAction('core.zip', 'standard-full')
-        updateAction('patch.zip', 'standard-full')
+            updateType = 'standard-full-system'
+            updateAction(config.operatingSystem + '.zip', updateType)
+        updateAction('core.zip', updateType)
+        updateAction('patch.zip', updateType)
 
     # second case: if local core release is less than remote core release AND
     # if the remote core release is equal to the remote patch release,
     # then just install the core release.
     elif ((remoteVersion.major > localVersion.major or remoteVersion.minor > localVersion.minor) and remoteVersion.patch == 0):
+        updateType = 'standard-core'
         if (config.operatingSystem != ''):
-            updateAction(config.operatingSystem + '.zip', 'standard-core')
-        updateAction('core.zip', 'standard-core')
+            updateType = 'standard-core-system'
+            updateAction(config.operatingSystem + '.zip', updateType)
+        updateAction('core.zip', updateType)
 
     # third case: if local patch release is less than the remote patch release,
     # then just install the patch release.
@@ -156,34 +159,43 @@ def privateBuild():
     privateBuildRemote = getRemoteVersion('private')
     if (os.path.exists(config.privateBuildChannelName) == True):
         privateBuildLocal = getLocalVersion('private')
+    
+    # create logic for update check
+    if ((os.path.exists(config.privateBuildChannelName) == False and int(privateBuildRemote.prerelease[1]) > 0) or (os.path.exists(config.privateBuildChannelName) == True and privateBuildRemote.prerelease[1] > privateBuildLocal.prerelease[1])):
+        if (config.privateBuildChannelAuthMethod == 'password'):
+            updateExt = '.7z'
+        else:
+            updateExt = '.zip'
 
-    if (int(privateBuildRemote.prerelease[1]) > 0 and (os.path.exists(config.privateBuildChannelName) == False or (os.path.exists(config.privateBuildChannelName) == True and (privateBuildRemote.major != privateBuildLocal.major or privateBuildRemote.minor != privateBuildLocal.minor)))):
-        if (config.operatingSystem != ''):
-            updateAction(config.operatingSystem + '.zip', 'private-full')
-        if (config.privateBuildChannelAuthMethod == 'none'):
-            updateAction('core.zip', 'private-full')
-            updateAction('patch.zip', 'private-full')
-        elif (config.privateBuildChannelAuthMethod == 'password'):
-            updateAction('core.7z', 'private-full')
-            updateAction('patch.7z', 'private-full')
-    elif (int(privateBuildRemote.prerelease[1]) == 0 and (os.path.exists(config.privateBuildChannelName) == False or (os.path.exists(config.privateBuildChannelName) == True and (privateBuildRemote.major != privateBuildLocal.major or privateBuildRemote.minor != privateBuildLocal.minor)))):
-        if (config.operatingSystem != ''):
-            updateAction(config.operatingSystem + '.zip', 'private-core')
-        if (config.privateBuildChannelAuthMethod == 'none'):
-            updateAction('core.zip', 'private-core')
-        elif (config.privateBuildChannelAuthMethod == 'password'):
-            updateAction('core.7z', 'private-core')
-    elif (privateBuildRemote.prerelease[1] > privateBuildLocal.prerelease[1]):
-        if (config.privateBuildChannelAuthMethod == 'none'):
-            updateAction('patch.zip', 'private-patch')
-        elif (config.privateBuildChannelAuthMethod == 'password'):
-            updateAction('patch.7z', 'private-patch')
+        if (int(privateBuildRemote.prerelease[1]) > 0 and (os.path.exists(config.privateBuildChannelName) == False or (os.path.exists(config.privateBuildChannelName) == True and (privateBuildRemote.major != privateBuildLocal.major or privateBuildRemote.minor != privateBuildLocal.minor)))):
+            updateType = 'private-full'
+            if (config.operatingSystem != ''):
+                updateType = 'private-full-system'
+                updateAction(config.operatingSystem + '.zip', updateType)
+            updateAction('core' + updateExt, updateType)
+            updateAction('patch' + updateExt, updateType)
+        elif (int(privateBuildRemote.prerelease[1]) == 0 and (os.path.exists(config.privateBuildChannelName) == False or (os.path.exists(config.privateBuildChannelName) == True and (privateBuildRemote.major != privateBuildLocal.major or privateBuildRemote.minor != privateBuildLocal.minor)))):
+            updateType = 'private-core'
+            if (config.operatingSystem != ''):
+                updateType = 'private-core-system'
+                updateAction(config.operatingSystem + '.zip', updateType)
+            updateAction('core' + updateExt, updateType)
+        elif (privateBuildRemote.prerelease[1] > privateBuildLocal.prerelease[1]):
+            updateAction('patch' + updateExt, 'private-patch')
+        else:
+            gui.progressBar['value'] = 100
+            gui.progressLabel['text'] = 'Error.'
+
+        newVersion = getLocalVersion('private')
+        if (newVersion == privateBuildRemote):
+            gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build is now installed!'
+        else:
+            gui.progressLabel['text'] = 'Error: version information out of sync.'
+            messagebox.showerror('Prelude Error', 'Error: the local ' + config.privateBuildChannelName + ' version information file is out of sync with the remote ' + config.privateBuildChannelName + ' version information file.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
     else:
-        gui.progressBar['value'] = 100
-        gui.progressLabel['text'] = 'Error.'
+        messagebox.showinfo(config.privateBuildChannelName + ' Build Channel', 'The latest ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel release is already installed.', parent=gui.window)
 
     # displays confirmation message & re-enables GUI elements
-    gui.progressLabel['text'] = 'Latest ' + config.privateBuildChannelName + ' build is now installed!'
     gui.enable()
     if (localVersion != remoteVersion):
         if (localVersion == semantic_version.Version('0.0.0')):
@@ -196,6 +208,8 @@ def privateBuild():
 # handles the actual updating, based on the targetted archive and what kind of update it is
 # also updates the progress bar and label depending on the same
 def updateAction(updateTarget, updateType):
+    gui.progressLabel['text'] = 'Preparing ' + config.gameTitle + 'game folder.'
+
     if (localVersion != semantic_version.Version('0.0.0') and (updateType == 'standard-full' or updateType == 'standard-core') and ((config.operatingSystem != '' and updateTarget == config.operatingSystem + '.zip') or (config.operatingSystem == '' and updateTarget == 'core.zip'))):
         retain = [os.path.basename(sys.argv[0]), 'version', 'configData', 'privateConfigData', 'misc', 'old', 'scripts', '.git', '__pycache__', '.gitignore', 'CHANGELOG.md', 'encKey', 'gui.py', 'icon.ico', 'LICENSE', 'privateBuildChannel.py', 'README.md', 'config.py', 'updater.py']
 
@@ -210,18 +224,19 @@ def updateAction(updateTarget, updateType):
         shutil.rmtree(config.privateBuildChannelName)
         os.mkdir(config.privateBuildChannelName)
 
-    if (updateTarget == 'core.zip'):
+    if (os.path.exists(updateTarget) == True):
+        os.remove(updateTarget)
+
+    gui.progressBar['value'] += 5
+    if (updateTarget == 'core.zip' and 'standard' in updateType):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v' + str(remoteVersion.major) + '.' + str(remoteVersion.minor) + ') archive.'
-    elif (updateTarget == 'patch.zip'):
+    elif (updateTarget == 'patch.zip' and 'standard' in updateType):
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' (v.' + str(remoteVersion.patch) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Downloading latest ' + updateTarget + ' archive.'
 
-    if (os.path.exists(updateTarget) == True):
-        os.remove(updateTarget)
-
     try:
-        if (updateType == 'private-full' or updateType == 'private-core' or updateType == 'private-patch'):
+        if ('private' in updateType):
             download = requests.get(config.privateBuildChannelURLPath + '/' + updateTarget, stream=True, timeout=30)
         else:
             download = requests.get(config.urlPath + '/' + updateTarget, stream=True, timeout=30)
@@ -250,15 +265,19 @@ def updateAction(updateTarget, updateType):
 
     if totalLength is None:
         updateFile.write(download.content)
-        if (updateType == 'full'):
-            gui.progressBar['value'] += 40
-        else:
-            gui.progressBar['value'] += 90
+        if ('full-system' in updateType):
+            gui.progressBar['value'] += 12
+        elif ('core-system' in updateType or 'full' in updateType):
+            gui.progressBar['value'] += 20
+        elif ('core' in updateType or 'patch' in updateType):
+            gui.progressBar['value'] += 45
     else:
-        if (updateType == 'full'):
-            increment = int(totalLength / 40)
-        else:
-            increment = int(totalLength / 90)
+        if ('full-system' in updateType):
+            increment = int(totalLength / 12)
+        elif ('core-system' in updateType or 'full' in updateType):
+            increment = int(totalLength / 20)
+        elif ('core' in updateType or 'patch' in updateType):
+            increment = int(totalLength / 45)
 
         for data in download.iter_content(chunk_size=increment):
             updateFile.write(data)
@@ -266,9 +285,9 @@ def updateAction(updateTarget, updateType):
 
     updateFile.close()
 
-    if (updateTarget == 'core.zip'):
+    if (updateTarget == 'core.zip' and 'standard' in updateType):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v' + str(remoteVersion.major) + '.' + str(remoteVersion.minor) + ') archive.'
-    elif (updateTarget == 'patch.zip'):
+    elif (updateTarget == 'patch.zip' and 'standard' in updateType):
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' (v.' + str(remoteVersion.patch) + ') archive.'
     else:
         gui.progressLabel['text'] = 'Extracting ' + updateTarget + ' archive.'
@@ -286,7 +305,7 @@ def updateAction(updateTarget, updateType):
     else:
         try:
             updateFile = zipfile.ZipFile(updateTarget, 'r')
-            if (updateType == 'private-full' or updateType == 'private-core' or updateType == 'private-patch'):
+            if ('private' in updateType):
                 updateFile.extractall(path=config.privateBuildChannelName)
             else:
                 updateFile.extractall()
@@ -305,14 +324,13 @@ def updateAction(updateTarget, updateType):
         messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
         gui.close() """
 
-    gui.progressBar['value'] += 5
-
-    if (updateTarget == 'core.zip'):
-        gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v' + str(remoteVersion.major) + '.' + str(remoteVersion.minor) + ') archive.'
-    elif (updateTarget == 'patch.zip'):
-        gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' (v.' + str(remoteVersion.patch) + ') archive.'
-    else:
-        gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' archive.'
+    if ('full-system' in updateType):
+        gui.progressBar['value'] += 12
+    elif ('core-system' in updateType or 'full' in updateType):
+        gui.progressBar['value'] += 20
+    elif ('core' in updateType or 'patch' in updateType):
+        gui.progressBar['value'] += 45
+    gui.progressLabel['text'] = 'Deleting ' + updateTarget + ' archive.'
 
     try:
         os.remove(updateTarget)
@@ -330,7 +348,7 @@ gui.updateButton['command'] = lambda: standardThread.start()
 if (config.privateBuildChannelAuthMethod != ''):
     gui.privateBuildChannel.entryconfigure('Display ' + config.privateBuildChannelName + ' Build Messages', command=lambda: privateBuildChannel.messages())
     privateThread = threading.Thread(target=privateBuild)
-    gui.privateBuildChannel.entryconfigure('Update ' + config.privateBuildChannelName + ' Build', command=lambda: privateThread.start())
+    gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build', command=lambda: privateThread.start())
 
 # call relevant functions to get version information,
 # set the appropriate labels to the returned information
@@ -346,11 +364,14 @@ if (localVersion == semantic_version.Version('0.0.0') and remoteVersion > semant
 elif (remoteVersion > localVersion):
     gui.actions.entryconfigure('Update Game', state=NORMAL)
     gui.updateButton['state'] = NORMAL
+if (config.privateBuildChannelAuthMethod != ''):
+    gui.privateBuildChannel.entryconfigure('Install Latest ' + config.privateBuildChannelName + ' Build', state=NORMAL)
 
 # displays any messages, checks if the computer is
 # authorized for the private build channel
 displayMessages()
-privateBuildChannel.messages()
+if (config.privateBuildChannelAuthMethod != ''):
+    privateBuildChannel.messages()
 
 # creates & displays the GUI
 gui.window.mainloop()

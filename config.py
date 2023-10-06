@@ -1,7 +1,3 @@
-# changes:
-# versionfile, core.zip, patch.zip, messagefile, private-core.zip, private-patch.zip, privateMessage, iconpath, authToken, passwordFile are defined within code
-# new remote file: installMessage
-
 # from cryptography.fernet import Fernet
 
 configFile = open('configData', 'r')

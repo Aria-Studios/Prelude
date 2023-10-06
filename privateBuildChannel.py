@@ -7,8 +7,6 @@ import lzma, os, py7zr, threading, urllib
 
 import config, gui
 
-# to do: make sure discordNotifications are good at end
-
 # checks to see if any messages can or should be displayed and does so
 def messages():
     if (config.privateBuildChannelAuthMethod != ''):
@@ -35,11 +33,11 @@ def discordNotification(name, pwd, var):
     embed.add_embed_field(name='Channel:', value=config.privateBuildChannelName)
     embed.add_embed_field(name='User:', value=name, inline=False)
     embed.add_embed_field(name='Password:', value=pwd, inline=False)
-    if (var == 'Success' or var == 'Failure'):
+    if (var == 'Success' or var =='Failure'):
         embed.set_description('User has attempted to authorize their computer for:')
         embed.add_embed_field(name='Result:', value=var, inline=False)
     else:
-        embed.set_description('User has attempted to use an authToken file that does not match their computer.')
+        embed.set_description('User has attempted to use an authToken file that does not match their computer or the archive password.')
         embed.add_embed_field(name='Computer Login:', value=var, inline=False)
     embed.set_footer(text='Powered by Prelude v4 (Alpha)')
 
@@ -103,7 +101,7 @@ def createAuth(authWindow, nameEntry, pwdEntry, updateTarget, flag):
             if (config.discordWebhookURL != ''):
                 discordNotification(nameEntry, pwdEntry, 'Success')
             
-            messagebox.showinfo(config.privateBuildChannelName + ' Authorization', 'Authorization Successful: your computer has been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.\n\nPlease use the menu options to install & update the build as necessary.', parent=authWindow)
+            messagebox.showinfo(config.privateBuildChannelName + ' Authorization', 'Authorization Successful: your computer has been authorized for the ' + config.gameTitle + ' ' + config.privateBuildChannelName + ' build channel.', parent=authWindow)
 
             authWindow.destroy()
             updateFile.extractall(path=config.privateBuildChannelName)
