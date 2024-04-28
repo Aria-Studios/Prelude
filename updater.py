@@ -1,5 +1,5 @@
-# to do: finalize updater updating
 # to do: fix the prep section before compiling
+# to do: brainstorm how updater updates being shipped in private builds works (some files need to go to private build folder, others need to be in base folder.)
 
 # import relevant modules & script files
 from tkinter import *
@@ -7,6 +7,8 @@ from tkinter import messagebox, ttk
 import lzma, os, py7zr, requests, semantic_version, shutil, sys, threading, urllib, zipfile
 
 import config, gui, privateBuildChannel
+
+# messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
 
 # checks if required variables are defined, if not display an error message and close
 if (config.gameTitle == '' or config.urlPath == '' or (config.privateBuildChannelAuthMethod != '' and (config.privateBuildChannelName == '' or config.privateBuildChannelURLPath == ''))):
@@ -305,10 +307,19 @@ def updateAction(updateTarget, updateType):
     else:
         try:
             updateFile = zipfile.ZipFile(updateTarget, 'r')
-            if ('private' in updateType):
-                updateFile.extractall(path=config.privateBuildChannelName)
+            if (os.path.basename(sys.argv[0]) in updateFile.namelist()):
+                for fileName in updateFile.namelist():
+                    if (fileName == os.path.basename(sys.argv[0])):
+                        updateFile.getinfo(os.path.basename(sys.argv[0])).filename = 'new-' + os.path.basename(sys.argv[0])
+                    if ('private' in updateType):
+                        updateFile.extract(fileName, path=config.privateBuildChannelName)
+                    else:
+                        updateFile.extract(fileName)
             else:
-                updateFile.extractall()
+                if ('private' in updateType):
+                    updateFile.extractall(path=config.privateBuildChannelName)
+                else:
+                    updateFile.extractall()
             updateFile.close()
         except FileNotFoundError:
             messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' cannot be found.\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
@@ -319,10 +330,6 @@ def updateAction(updateTarget, updateType):
         except PermissionError:
             messagebox.showerror('Prelude Error', 'Local archive ' + updateTarget + ' contains files currently being used by other programs or that the program cannot overwrite (including hidden files).\n\nContact the ' + config.gameTitle + ' developers.', parent=gui.window)
             gui.close()
-
-    """ if (os.path.basename(sys.argv[0]) in updateFile.namelist()):
-        messagebox.showwarning('Prelude Warning', 'Warning: this update must be manually installed. Please extract the ' + updateTarget + ' archive directly into the game directory.', parent=gui.window)
-        gui.close() """
 
     if ('full-system' in updateType):
         gui.progressBar['value'] += 12
